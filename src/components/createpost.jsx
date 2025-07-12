@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search } from "lucide-react";
 import Person1 from "../assets/images/person-1.png";
 import PDF from "../assets/images/pdf.png";
@@ -20,6 +20,13 @@ const CreatePost = () => {
     // setShowPostCreatePopup(true);
   };
 
+  useEffect(() => {
+  if (showPostCreatePopup || showPostPollPopup) {
+    document.body.style.overflow = 'hidden';
+  } else {
+    document.body.style.overflow = 'auto';
+  }
+}, [showPostCreatePopup, showPostPollPopup]);
   return (
     <div className="bg-white rounded-lg shadow-sm border border-[#6974b1] p-4 mb-4">
       <div className="flex items-center mb-4">

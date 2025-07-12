@@ -5,7 +5,7 @@ import {
   MessageCircle,
   Forward,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import PostProfile from "../assets/images/postprofile.jpg";
 import PostImage from "../assets/images/postimage.png";
 import PostComment from "../components/post_comment";
@@ -47,7 +47,13 @@ const Post = () => {
         "Freelance iOS Developer helping startups build bold, modern brand identities",
     },
   ];
-
+  useEffect(() => {
+    if (showCommentPopup || showSharePopup) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "auto";
+    }
+  }, [showCommentPopup, showSharePopup]);
   return (
     <div className="mx-auto space-y-4">
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-4 mx-auto">
