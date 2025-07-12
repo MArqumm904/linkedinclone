@@ -68,7 +68,6 @@ const PostStory = ({
       >
         <img src={cross} alt="Close" className="w-6 h-6" />
       </button>
-      <h1>TAHOOR</h1>
       <div className="relative">
         <div
           className="rounded-2xl overflow-hidden"
