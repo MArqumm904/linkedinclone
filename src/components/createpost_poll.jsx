@@ -99,7 +99,7 @@ const CreatePoll = ({ onClose }) => {
                     {options.length > 2 && (
                       <button
                         onClick={() => removeOption(index)}
-                        className="border  rounded-full text-black hover:text-gray-800 transition-colors p-1 hover:bg-gray-100 rounded"
+                        className="border  rounded-full text-black hover:text-gray-800 transition-colors p-1 hover:bg-gray-100 "
                       >
                         <X size={20} />
                       </button>
@@ -116,7 +116,9 @@ const CreatePoll = ({ onClose }) => {
                 className="w-full p-2 border-2 border-gray-300 rounded-sm text-gray-600 hover:bg-gray-50 hover:border-gray-400 transition-colors flex items-center justify-center space-x-2"
               >
                 <Plus size={18} className="text-black" />
-                <span className="font-medium text-black font-sf">Add option</span>
+                <span className="font-medium text-black font-sf">
+                  Add option
+                </span>
               </button>
             )}
 
