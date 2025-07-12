@@ -8,8 +8,12 @@ import {
 import { useState } from "react";
 import PostProfile from "../assets/images/postprofile.jpg";
 import PostImage from "../assets/images/postimage.png";
+import PostComment from "../components/post_comment";
+import PostShare from "../components/post_share";
 
 const Post = () => {
+  const [showCommentPopup, setShowCommentPopup] = useState(false);
+  const [showSharePopup, setShowSharePopup] = useState(false);
   const [reactions, setReactions] = useState({
     like: 0,
     love: 0,
@@ -22,8 +26,7 @@ const Post = () => {
     {
       id: 1,
       name: "Sarah Malik",
-      avatar:
-        PostImage,
+      avatar: PostImage,
       description:
         "Freelance Web designer helping startups build bold, modern brand identities",
     },
@@ -91,7 +94,7 @@ const Post = () => {
             <img
               src={PostImage}
               alt="Profile"
-              className="w-full h-full object-cover"
+              className="w-full h-96 object-cover"
             />
           </div>
         </div>
@@ -130,14 +133,36 @@ const Post = () => {
               <ThumbsUp className="w-5 h-5" />
               <span className="text-sm font-medium">Like</span>
             </button>
-            <button className="flex items-center space-x-2 text-gray-600 hover:text-blue-500 transition-colors">
+            <button
+              onClick={() => setShowCommentPopup(true)}
+              className="flex items-center space-x-2 text-gray-600 hover:text-blue-500 transition-colors"
+            >
               <MessageCircle className="w-5 h-5" />
               <span className="text-sm font-medium">Comment</span>
             </button>
-            <button className="flex items-center space-x-2 text-gray-600 hover:text-blue-500 transition-colors">
+            {/* PostComment Component */}
+            {showCommentPopup && (
+              <PostComment
+                videoUrl="http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4"
+                // post_image={PostImage}
+                // text={"Ehy"}
+                onClose={() => setShowCommentPopup(false)}
+              />
+            )}
+
+            <button
+              onClick={() => setShowSharePopup(true)}
+              className="flex items-center space-x-2 text-gray-600 hover:text-blue-500 transition-colors"
+            >
               <Forward className="w-5 h-5" />
               <span className="text-sm font-medium">Share</span>
             </button>
+            {showSharePopup && (
+              <PostShare
+                videoUrl="http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4"
+                onClose={() => setShowSharePopup(false)}
+              />
+            )}
           </div>
         </div>
       </div>
@@ -152,7 +177,10 @@ const Post = () => {
         {/* Recommendations List */}
         <div className="p-4 space-y-4">
           {recommendations.map((person, index) => (
-            <div key={person.id} className="flex items-start space-x-4  border-b pb-3">
+            <div
+              key={person.id}
+              className="flex items-start space-x-4  border-b pb-3"
+            >
               {/* Avatar */}
               <div className="flex-shrink-0">
                 <img
