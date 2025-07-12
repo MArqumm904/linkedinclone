@@ -79,7 +79,7 @@ const PostStory = ({
             className={`relative w-full h-full ${
               storyType === "text"
                 ? "bg-gradient-to-br from-purple-500 to-pink-500"
-                : "bg-gray-200"
+                : "bg-[#9b9b9b]"
             }`}
             onMouseMove={
               isDraggingImage ? handleImageMouseMove : handleMouseMove
