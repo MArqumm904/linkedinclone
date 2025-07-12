@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Camera, Type, Plus, X } from 'lucide-react';
 import PostStory from './homecomponents/poststory';
 import StoryViewer from './homecomponents/storyviewer';
@@ -169,6 +169,19 @@ const Stories = () => {
     }
   };
 
+  // Add this useEffect in your Stories component
+  useEffect(() => {
+    if (showStoryCreator || showStoryTypeModal || showStoryViewer) {
+      document.body.classList.add('overflow-hidden');
+    } else {
+      document.body.classList.remove('overflow-hidden');
+    }
+
+    return () => {
+      document.body.classList.remove('overflow-hidden');
+    };
+  }, [showStoryCreator, showStoryTypeModal, showStoryViewer]);
+
   const handleMouseUp = () => {
     setDraggedText(null);
   };
@@ -238,7 +251,7 @@ const Stories = () => {
 
       {/* Story Type Selection Modal */}
       {showStoryTypeModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed-inset bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-gray-100 p-8 rounded-lg max-w-md w-full mx-4">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-lg font-semibold">Create Story</h2>
@@ -275,6 +288,7 @@ const Stories = () => {
 
       {/* Story Viewer */}
       <StoryViewer
+        className="fixed-inset"
         isOpen={showStoryViewer}
         onClose={closeStoryViewer}
         stories={stories}
