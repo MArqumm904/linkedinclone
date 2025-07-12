@@ -31,7 +31,10 @@ const PostStory = ({
     const handleRemoveText = (id) => {
         setTextBoxes(prevTextBoxes => prevTextBoxes.filter(box => box.id !== id));
     };
-
+    
+const handleRemoveTextrr = (id) => {
+        setTextBoxes(prevTextBoxes => prevTextBoxes.filter(box => box.id !== id));
+    };
     // Image dragging handlers
     const handleImageMouseDown = (e) => {
         if (!selectedImage) return;
