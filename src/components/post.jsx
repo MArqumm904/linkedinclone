@@ -143,8 +143,8 @@ const Post = () => {
             {/* PostComment Component */}
             {showCommentPopup && (
               <PostComment
-                videoUrl="http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4"
-                // post_image={PostImage}
+                // videoUrl="http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4"
+                post_image={PostImage}
                 // text={"Ehy"}
                 onClose={() => setShowCommentPopup(false)}
               />

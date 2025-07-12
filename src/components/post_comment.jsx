@@ -152,7 +152,7 @@ const PostComment = ({ onClose, post_image, text, videoUrl }) => {
               ...comment.replies,
               {
                 id: Date.now(),
-                user: "Your Name",
+                user: "Tahoor",
                 avatar:
                   "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=40&h=40&fit=crop&crop=face&round=50",
                 text: replyText,
@@ -171,8 +171,8 @@ const PostComment = ({ onClose, post_image, text, videoUrl }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 ">
-      <div className="bg-white rounded-lg shadow-2xl w-full max-w-md max-h-full overflow-hidden">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+      <div className="bg-white rounded-lg shadow-2xl w-full max-w-lg max-h-full overflow-hidden">
         {/* Original Post in Popup */}
         <div className="border-b border-gray-200">
           {/* Post Header */}
@@ -201,7 +201,7 @@ const PostComment = ({ onClose, post_image, text, videoUrl }) => {
               onClick={onClose} // onClose prop use kiya
               className="p-1 hover:bg-gray-100 rounded-full transition-colors"
             >
-              <X className="w-4 h-4 text-gray-500" />
+              <X className="w-6 h-6 text-black  hover:text-gray-600" />
             </button>
           </div>
 
