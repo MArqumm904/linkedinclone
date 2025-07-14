@@ -18,6 +18,9 @@ const SidebarMenu = () => {
   const onBackToHome = () => {
     navigate("/friends");
   };
+  const Gotonoti = () => {
+    navigate("/notifications");
+  };
   const menuItems = [
     { icon: Message, label: "Messages", count: 2, bgColor: "bg-[#ff0000]" },
     {
@@ -32,6 +35,7 @@ const SidebarMenu = () => {
       label: "Notifications",
       count: 3,
       bgColor: "bg-[#ff0000]",
+      onClick: Gotonoti,
     },
     { icon: Videoicon, label: "Video/Reels", bgColor: "bg-[#ff0000]" },
     { icon: Upload, label: "Create Post", bgColor: "bg-[#ff0000]" },
