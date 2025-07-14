@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Message from "../assets/images/message.png";
 import Persons from "../assets/images/persons.png";
@@ -12,15 +13,24 @@ import Fb from "../assets/images/fb.png";
 import Fiverr from "../assets/images/fiverr.jpg";
 import Yahoo from "../assets/images/yahoo.jpg";
 import { CirclePlus } from "lucide-react";
+import PostCreate from "../components/createpost_text";
 
 const SidebarMenu = () => {
   const navigate = useNavigate();
+  const [showPostCreatePopup, setShowPostCreatePopup] = useState(false);
   const onBackToHome = () => {
     navigate("/friends");
   };
   const Gotonoti = () => {
     navigate("/notifications");
   };
+  useEffect(() => {
+    if (showPostCreatePopup) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "auto";
+    }
+  }, [showPostCreatePopup]);
   const menuItems = [
     { icon: Message, label: "Messages", count: 2, bgColor: "bg-[#ff0000]" },
     {
@@ -38,7 +48,12 @@ const SidebarMenu = () => {
       onClick: Gotonoti,
     },
     { icon: Videoicon, label: "Video/Reels", bgColor: "bg-[#ff0000]" },
-    { icon: Upload, label: "Create Post", bgColor: "bg-[#ff0000]" },
+    {
+      icon: Upload,
+      label: "Create Post",
+      bgColor: "bg-[#ff0000]",
+      onClick: () => setShowPostCreatePopup(true),
+    },
     { icon: Saved, label: "Saved", bgColor: "bg-[#ff0000]" },
     { icon: Groups, label: "Groups", bgColor: "bg-[#ff0000]" },
     { icon: Flag, label: "Pages", bgColor: "bg-[#ff0000]" },
@@ -46,6 +61,9 @@ const SidebarMenu = () => {
 
   return (
     <div className="min-h-screen ">
+      {showPostCreatePopup && (
+        <PostCreate onClose={() => setShowPostCreatePopup(false)} />
+      )}
       {/* Main Menu */}
       <div className="bg-white rounded-lg shadow-sm border border-[#6974b1] p-2 mb-4">
         {menuItems.map((item, index) => {

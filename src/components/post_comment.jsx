@@ -227,8 +227,8 @@ const PostComment = ({ onClose, post_image, text, videoUrl }) => {
         <div className="max-h-52 overflow-y-auto hide-scrollbar">
           {comments.map((comment) => (
             <div key={comment.id} className="border-b border-gray-100">
-              <div className="p-3 hover:bg-gray-50 transition-colors">
-                <div className="flex space-x-2">
+              <div className="p-3 hover:bg-gray-50 transition-colors ">
+                <div className="flex space-x-2 font-sf">
                   <img
                     src={comment.avatar}
                     alt={comment.user}
@@ -241,12 +241,12 @@ const PostComment = ({ onClose, post_image, text, videoUrl }) => {
                           {comment.user}
                         </p>
                         <span className="text-[10px] text-gray-500">•</span>
-                        <span className="text-[10px] text-gray-500">
+                        <span className="text-[10px] text-gray-500 font-sf">
                           {comment.time}
                         </span>
                       </div>
 
-                      <p className="text-xs text-gray-800 mt-1">
+                      <p className="text-xs text-gray-800 mt-1 font-sf">
                         {comment.text}
                       </p>
                     </div>
@@ -269,7 +269,7 @@ const PostComment = ({ onClose, post_image, text, videoUrl }) => {
                     {comment.replies && comment.replies.length > 0 && (
                       <button
                         onClick={() => toggleReplies(comment.id)}
-                        className="text-xs text-blue-500 hover:text-blue-600 font-medium mt-2 flex items-center space-x-1"
+                        className="text-xs text-blue-500 hover:text-blue-600 font-medium mt-2 flex items-center space-x-1 "
                       >
                         {replyingTo !== comment.id &&
                           (hiddenReplies[comment.id] ? (
@@ -320,7 +320,7 @@ const PostComment = ({ onClose, post_image, text, videoUrl }) => {
 
                 {/* Reply Input */}
                 {replyingTo === comment.id && (
-                  <div className="ml-10 mt-2 flex space-x-2">
+                  <div className="ml-10 mt-2 flex space-x-2 ">
                     <img
                       src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=40&h=40&fit=crop&crop=face&round=50"
                       alt="Your avatar"
@@ -358,7 +358,7 @@ const PostComment = ({ onClose, post_image, text, videoUrl }) => {
               {comment.replies &&
                 comment.replies.length > 0 &&
                 !hiddenReplies[comment.id] && (
-                  <div className="ml-10 border-l border-gray-200 pl-3">
+                  <div className="ml-10 border-l border-gray-200 pl-3 font-sf">
                     {comment.replies.map((reply) => (
                       <div
                         key={reply.id}

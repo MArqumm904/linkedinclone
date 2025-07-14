@@ -1,4 +1,5 @@
-import { Search, House, Store, Settings, User } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Search, User } from "lucide-react";
 import Logo from "../assets/images/logo.jpg";
 import Homeicon from "../assets/images/home.png";
 import Marketplace from "../assets/images/market.png";
@@ -7,10 +8,22 @@ import Upload from "../assets/images/upload.png";
 import Message from "../assets/images/message.png";
 import Groups from "../assets/images/groups.png";
 import Bellicon from "../assets/images/bellicon.png";
+import AddFriends from "./addfriends";
 
 export default function NavbarReplica() {
+  const [showaddfriendsPopup, setShowaddfriendsPopup] = useState(false);
+  useEffect(() => {
+    if (showaddfriendsPopup) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "auto";
+    }
+  }, [showaddfriendsPopup,]);
   return (
     <>
+      {showaddfriendsPopup && (
+        <AddFriends onClose={() => setShowaddfriendsPopup(false)} />
+      )}
       {/* Desktop/Tablet Navbar */}
       <div className="w-full bg-gray-50 border-b border-gray-200 hidden md:block">
         <div className="max-w-7xl mx-auto px-6 py-4">
@@ -75,7 +88,10 @@ export default function NavbarReplica() {
             {/* Right Section - Add Friends Button and Profile */}
             <div className="flex items-center space-x-4">
               {/* Add Friends Button */}
-              <button className="bg-[#efeff3] border border-[#333f7d] rounded-full px-5 py-2 text-[#333f7d] text-sm font-medium hover:bg-[#e5e5e9] transition-colors shadow-sm">
+              <button
+                onClick={() => setShowaddfriendsPopup(true)}
+                className="bg-[#efeff3] border border-[#333f7d] rounded-full px-5 py-2 text-[#333f7d] text-sm font-medium hover:bg-[#e5e5e9] transition-colors shadow-sm"
+              >
                 Add Friends
               </button>
 

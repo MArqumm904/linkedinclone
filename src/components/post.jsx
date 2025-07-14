@@ -15,6 +15,16 @@ const Post = () => {
   const [showCommentPopup, setShowCommentPopup] = useState(false);
   const [showSharePopup, setShowSharePopup] = useState(false);
   const [showFullText, setShowFullText] = useState(false);
+  const [isLiked, setIsLiked] = useState(false);
+  const [showAnimation, setShowAnimation] = useState(false);
+
+  const handleLike = () => {
+    if (!isLiked) {
+      setShowAnimation(true);
+      setTimeout(() => setShowAnimation(false), 600);
+    }
+    setIsLiked(!isLiked);
+  };
   const [reactions, setReactions] = useState({
     like: 0,
     love: 0,
@@ -140,7 +150,6 @@ const Post = () => {
                 1.7k Likes
               </span>
             </div>
-
             {/* Right side - Comments and views */}
             <div className="flex items-center space-x-4 text-sm text-gray-500">
               <span>9 Comments</span>
@@ -153,8 +162,33 @@ const Post = () => {
         {/* Action Buttons */}
         <div className="border-t border-gray-200 px-4 md:px-9 py-5">
           <div className="flex justify-between">
-            <button className="flex items-center space-x-2 text-gray-600 hover:text-blue-500 transition-colors">
-              <ThumbsUp className="w-5 h-5" />
+            <button
+              onClick={handleLike}
+              className={`flex items-center space-x-2 transition-colors ${
+                isLiked ? "text-blue-500" : "text-gray-600 hover:text-blue-500"
+              }`}
+            >
+              <div className="relative">
+                <ThumbsUp
+                  className={`w-5 h-5 transition-all duration-300 ${
+                    showAnimation ? "animate-bounce" : ""
+                  }`}
+                  fill={isLiked ? "currentColor" : "none"}
+                />
+
+                {/* Animation effect */}
+                {showAnimation && (
+                  <div className="absolute inset-0 pointer-events-none">
+                    <div className="absolute -top-1 left-0 animate-ping opacity-75">
+                      <ThumbsUp
+                        className="w-5 h-5 text-blue-500"
+                        fill="currentColor"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <span className="text-sm font-medium">Like</span>
             </button>
             <button
