@@ -1,5 +1,11 @@
 import { useState, useEffect, useRef } from "react";
-import { Search, MoreHorizontal, ThumbsUp, MessageCircle, Forward } from "lucide-react";
+import {
+  Search,
+  MoreHorizontal,
+  ThumbsUp,
+  MessageCircle,
+  Forward,
+} from "lucide-react";
 import PostProfile from "../assets/images/postprofile.jpg";
 import PostImage from "../assets/images/postimage.png";
 import PostComment from "../components/post_comment";
@@ -17,6 +23,16 @@ const Post = () => {
   const [storyType, setStoryType] = useState("photo");
   const [selectedImage, setSelectedImage] = useState(null);
   const [textBoxes, setTextBoxes] = useState([]);
+  const [showFullText, setShowFullText] = useState(false);
+  const [isLiked, setIsLiked] = useState(false);
+  const [showAnimation, setShowAnimation] = useState(false);
+  const handleLike = () => {
+    if (!isLiked) {
+      setShowAnimation(true);
+      setTimeout(() => setShowAnimation(false), 600);
+    }
+    setIsLiked(!isLiked);
+  };
   const [reactions, setReactions] = useState({
     like: 0,
     love: 0,
@@ -59,7 +75,7 @@ const Post = () => {
     setShowStoryCreator(false);
     setSelectedImage(null);
     setTextBoxes([]);
-    alert('Post added to your story successfully!');
+    alert("Post added to your story successfully!");
   };
 
   const closeStoryCreator = () => {
@@ -71,30 +87,32 @@ const Post = () => {
   const handleAddText = () => {
     const newTextBox = {
       id: Date.now(),
-      text: 'Add text here',
+      text: "Add text here",
       x: 50,
       y: 50,
       editing: true,
       fontSize: "16px",
-      color: "white"
+      color: "white",
     };
     setTextBoxes([...textBoxes, newTextBox]);
   };
 
   const handleTextClick = (id) => {
-    setTextBoxes(textBoxes.map(box =>
-      box.id === id ? { ...box, editing: true } : { ...box, editing: false }
-    ));
+    setTextBoxes(
+      textBoxes.map((box) =>
+        box.id === id ? { ...box, editing: true } : { ...box, editing: false }
+      )
+    );
   };
 
   const handleTextChange = (id, newText) => {
-    setTextBoxes(textBoxes.map(box =>
-      box.id === id ? { ...box, text: newText } : box
-    ));
+    setTextBoxes(
+      textBoxes.map((box) => (box.id === id ? { ...box, text: newText } : box))
+    );
   };
 
   const handleRemoveText = (id) => {
-    setTextBoxes(textBoxes.filter(box => box.id !== id));
+    setTextBoxes(textBoxes.filter((box) => box.id !== id));
   };
 
   const handleMouseDown = (e, textBox) => {
@@ -103,7 +121,7 @@ const Post = () => {
     setDraggedText(textBox.id);
     setDragOffset({
       x: e.clientX - rect.left,
-      y: e.clientY - rect.top
+      y: e.clientY - rect.top,
     });
   };
 
@@ -116,11 +134,17 @@ const Post = () => {
       const newX = e.clientX - container.left - dragOffset.x;
       const newY = e.clientY - container.top - dragOffset.y;
 
-      setTextBoxes(textBoxes.map(box =>
-        box.id === draggedText
-          ? { ...box, x: Math.max(0, Math.min(newX, container.width - 100)), y: Math.max(0, Math.min(newY, container.height - 30)) }
-          : box
-      ));
+      setTextBoxes(
+        textBoxes.map((box) =>
+          box.id === draggedText
+            ? {
+                ...box,
+                x: Math.max(0, Math.min(newX, container.width - 100)),
+                y: Math.max(0, Math.min(newY, container.height - 30)),
+              }
+            : box
+        )
+      );
     }
   };
 
@@ -128,11 +152,10 @@ const Post = () => {
     setDraggedText(null);
   };
 
-  // When clicking "Add to story" from menu
   const handleAddToStoryFromMenu = () => {
     setShowMenu(false);
     setStoryType("poststory");
-    setSelectedImage(PostImage); // Use the post image
+    setSelectedImage(PostImage);
     setShowStoryCreator(true);
   };
 
@@ -218,13 +241,28 @@ const Post = () => {
                   </button>
                 </div>
               )}
-
             </div>
           </div>
           <p className="px-4 text-gray-600 text-sm mb-3">
-            If you're an Operation Manager, this is your chance to make a lasting
-            impact. Lead with confidence, drive results, and shape the future of
-            our operations.
+            {/* Mobile: Toggle text */}
+            <span className="block md:hidden">
+              {showFullText
+                ? "If you're an Operation Manager, this is your chance to make a lasting impact. Lead with confidence, drive results, and shape the future of our operations."
+                : "If you're an Operation Manager, this is your chance to make a lasting impact..."}
+              <span
+                className="text-blue-500 font-semibold ml-1 cursor-pointer"
+                onClick={() => setShowFullText(!showFullText)}
+              >
+                {showFullText ? "See Less" : "See More"}
+              </span>
+            </span>
+
+            {/* Desktop: Always show full text, no toggle */}
+            <span className="hidden md:block">
+              If you're an Operation Manager, this is your chance to make a
+              lasting impact. Lead with confidence, drive results, and shape the
+              future of our operations.
+            </span>
           </p>
           {/* Content */}
           <div className="pb-3">
@@ -268,8 +306,35 @@ const Post = () => {
           {/* Action Buttons */}
           <div className="border-t border-gray-200 px-9 py-5">
             <div className="flex justify-between">
-              <button className="flex items-center space-x-2 text-gray-600 hover:text-blue-500 transition-colors">
-                <ThumbsUp className="w-5 h-5" />
+              <button
+                onClick={handleLike}
+                className={`flex items-center space-x-2 transition-colors ${
+                  isLiked
+                    ? "text-blue-500"
+                    : "text-gray-600 hover:text-blue-500"
+                }`}
+              >
+                <div className="relative">
+                  <ThumbsUp
+                    className={`w-5 h-5 transition-all duration-300 ${
+                      showAnimation ? "animate-bounce" : ""
+                    }`}
+                    fill={isLiked ? "currentColor" : "none"}
+                  />
+
+                  {/* Animation effect */}
+                  {showAnimation && (
+                    <div className="absolute inset-0 pointer-events-none">
+                      <div className="absolute -top-1 left-0 animate-ping opacity-75">
+                        <ThumbsUp
+                          className="w-5 h-5 text-blue-500"
+                          fill="currentColor"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 <span className="text-sm font-medium">Like</span>
               </button>
               <button
