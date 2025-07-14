@@ -23,7 +23,7 @@ const SidebarMenu = () => {
       bgColor: "bg-[#ff0000]",
     },
     { icon: Videoicon, label: "Video/Reels", bgColor: "bg-[#ff0000]" },
-    { icon: Upload, label: "Messages", bgColor: "bg-[#ff0000]" },
+    { icon: Upload, label: "Create Post", bgColor: "bg-[#ff0000]" },
     { icon: Saved, label: "Saved", bgColor: "bg-[#ff0000]" },
     { icon: Groups, label: "Groups", bgColor: "bg-[#ff0000]" },
     { icon: Flag, label: "Pages", bgColor: "bg-[#ff0000]" },
@@ -118,7 +118,9 @@ const SidebarMenu = () => {
                 className="w-10 h-10 rounded-lg object-contain"
               />
             </div>
-            <span className="text-gray-900 font-medium font-sf">Fiver Community</span>
+            <span className="text-gray-900 font-medium font-sf">
+              Fiver Community
+            </span>
           </div>
 
           <div className="flex items-center hover:bg-gray-50 cursor-pointer p-2 rounded-lg transition-colors">
@@ -128,7 +130,9 @@ const SidebarMenu = () => {
                 className="w-10 h-10 rounded-lg object-contain"
               />
             </div>
-            <span className="text-gray-900 font-medium font-sf">Yahoo Community</span>
+            <span className="text-gray-900 font-medium font-sf">
+              Yahoo Community
+            </span>
           </div>
         </div>
 
