@@ -86,26 +86,29 @@ const PostImageStory = ({
       >
         {selectedImage && (
           <div
-            className="relative  p-4 rounded-md "
-            style={{ width: "340px", height: "400px" }}
+            className="relativeflex items-center justify-center"
+            style={{ width: "300px", height: "350px" }}
           >
-
-            <img
-              src={selectedImage}
-              alt="Post content"
-              className={`max-w-full rounded-lg max-h-full object-contain ${isDraggingImage ? "cursor-grabbing" : "cursor-grab"
-                }`}
+            <div
+              className={`w-full h-full flex flex-col items-start justify-center ${isDraggingImage ? "cursor-grabbing" : "cursor-grab"}`}
               style={{
                 transform: `translate(${imagePosition.x}px, ${imagePosition.y}px) scale(${imageScale})`,
                 transition: isDraggingImage ? "none" : "transform 0.2s ease",
               }}
               onMouseDown={handleImageMouseDown}
-              draggable={false}
-            />
-            <div className="text-white text-left mt-2 text-sm font-medium">@ JR Graphics</div>
+            >
+              <img
+                src={selectedImage}
+                alt="Post content"
+                className="max-w-full max-h-full object-contain rounded-lg pointer-events-none"
+                draggable={false}
+              />
+              <div className="text-white text-sm font-medium mt-2 pointer-events-none">@ JR Graphics</div>
+            </div>
 
           </div>
         )}
+
 
         {/* Text boxes */}
         {textBoxes.map((textBox) => (
