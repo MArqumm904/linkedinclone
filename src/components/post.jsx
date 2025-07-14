@@ -5,11 +5,15 @@ import {
   MessageCircle,
   Forward,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import PostProfile from "../assets/images/postprofile.jpg";
 import PostImage from "../assets/images/postimage.png";
 import PostComment from "../components/post_comment";
 import PostShare from "../components/post_share";
+import bookmark from ".././assets/images/bookmark 1.png"
+import avatorr from ".././assets/images/avatorr.png"
+import error from ".././assets/images/error.png"
+import addtostory from ".././assets/images/addtostory.png"
 
 const Post = () => {
   const [showCommentPopup, setShowCommentPopup] = useState(false);
@@ -22,6 +26,8 @@ const Post = () => {
     sad: 0,
     angry: 0,
   });
+  const [showMenu, setShowMenu] = useState(false);
+  const menuRef = useRef();
   const recommendations = [
     {
       id: 1,
@@ -54,6 +60,15 @@ const Post = () => {
       document.body.style.overflow = "auto";
     }
   }, [showCommentPopup, showSharePopup]);
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setShowMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
   return (
     <div className="mx-auto space-y-4">
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-4 mx-auto">
@@ -63,7 +78,8 @@ const Post = () => {
           </h2>
         </div>
         {/* Header */}
-        <div className="flex items-center justify-between p-4 pb-3">
+        <div className="flex items-center justify-between p-4 pb-3 relative">
+          {/* Left profile + name block */}
           <div className="flex items-center">
             <div className="w-12 h-12 rounded-md bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center mr-3">
               <img
@@ -84,9 +100,38 @@ const Post = () => {
               <span className="text-gray-500 text-xs">2 Days Ago</span>
             </div>
           </div>
-          <button className="text-gray-400 hover:text-gray-600">
-            <MoreHorizontal className="w-5 h-5 mb-5 mx-1" />
-          </button>
+
+          {/* More icon + dropdown */}
+          <div className="relative" ref={menuRef}>
+            <button
+              className="text-gray-400 hover:text-gray-600"
+              onClick={() => setShowMenu(!showMenu)}
+            >
+              <MoreHorizontal className="w-5 h-5 mb-5 mx-1" />
+            </button>
+
+            {showMenu && (
+              <div className="absolute right-0 mt-1 w-52 bg-white border border-gray-200 rounded-md shadow-md z-10 p-2 space-y-2 text-sm">
+                <button className="w-full flex items-center gap-2 px-3 py-1 hover:bg-gray-100 rounded-md text-left">
+                  <img src={bookmark} alt="Save" className="w-4 h-4" />
+                  <span>Save Post</span>
+                </button>
+                <button className="w-full flex items-center gap-2 px-3 py-1 hover:bg-gray-100 rounded-md text-left">
+                  <img src={avatorr} alt="Profile" className="w-4 h-4" />
+                  <span>View The Profile</span>
+                </button>
+                <button className="w-full flex items-center gap-2 px-3 py-1 hover:bg-gray-100 rounded-md text-left text-red-600 font-medium">
+                  <img src={error} alt="Report" className="w-4 h-4" />
+                  <span>Report Post</span>
+                </button>
+                <button className="w-full flex items-center gap-2 px-3 py-1 hover:bg-gray-100 rounded-md text-left">
+                  <img src={addtostory} alt="Add" className="w-4 h-4" />
+                  <span>Add to story</span>
+                </button>
+              </div>
+            )}
+
+          </div>
         </div>
         <p className="px-4 text-gray-600 text-sm mb-3">
           If you're an Operation Manager, this is your chance to make a lasting
