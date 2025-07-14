@@ -14,6 +14,7 @@ import PostShare from "../components/post_share";
 const Post = () => {
   const [showCommentPopup, setShowCommentPopup] = useState(false);
   const [showSharePopup, setShowSharePopup] = useState(false);
+  const [showFullText, setShowFullText] = useState(false);
   const [reactions, setReactions] = useState({
     like: 0,
     love: 0,
@@ -56,7 +57,7 @@ const Post = () => {
   }, [showCommentPopup, showSharePopup]);
   return (
     <div className="mx-auto space-y-4">
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-4 mx-auto">
+      <div className="bg-white rounded-none md:rounded-lg shadow-sm border border-gray-200 mb-4 mx-auto">
         <div className="border-b rounded-t-lg p-4">
           <h2 className="text-gray-600 font-sf text-sm font-medium ms-2">
             Suggested
@@ -89,10 +90,27 @@ const Post = () => {
           </button>
         </div>
         <p className="px-4 text-gray-600 text-sm mb-3">
-          If you're an Operation Manager, this is your chance to make a lasting
-          impact. Lead with confidence, drive results, and shape the future of
-          our operations.
+          {/* Mobile: Toggle text */}
+          <span className="block md:hidden">
+            {showFullText
+              ? "If you're an Operation Manager, this is your chance to make a lasting impact. Lead with confidence, drive results, and shape the future of our operations."
+              : "If you're an Operation Manager, this is your chance to make a lasting impact..."}
+            <span
+              className="text-blue-500 font-semibold ml-1 cursor-pointer"
+              onClick={() => setShowFullText(!showFullText)}
+            >
+              {showFullText ? "See Less" : "See More"}
+            </span>
+          </span>
+
+          {/* Desktop: Always show full text, no toggle */}
+          <span className="hidden md:block">
+            If you're an Operation Manager, this is your chance to make a
+            lasting impact. Lead with confidence, drive results, and shape the
+            future of our operations.
+          </span>
         </p>
+
         {/* Content */}
         <div className="pb-3">
           {/* Job Post Image */}
@@ -106,10 +124,10 @@ const Post = () => {
         </div>
 
         {/* Reactions */}
-        <div className="px-4 py-3 border-b border-gray-100">
+        <div className="px-3 md:px-4 py-3 border-b border-gray-100">
           <div className="flex items-center justify-between">
             {/* Left side - Reaction icons and count */}
-            <div className="flex items-center space-x-2 ms-1">
+            <div className="flex items-center space-x-2 -ms-1 md:ms-1">
               <div className="flex items-center -space-x-2">
                 <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center border-2 border-white z-10">
                   <ThumbsUp className="w-4 h-4 text-white fill-white" />
@@ -133,7 +151,7 @@ const Post = () => {
         </div>
 
         {/* Action Buttons */}
-        <div className="border-t border-gray-200 px-9 py-5">
+        <div className="border-t border-gray-200 px-4 md:px-9 py-5">
           <div className="flex justify-between">
             <button className="flex items-center space-x-2 text-gray-600 hover:text-blue-500 transition-colors">
               <ThumbsUp className="w-5 h-5" />

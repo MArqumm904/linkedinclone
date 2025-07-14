@@ -7,7 +7,7 @@ import SponserImage2 from "../assets/images/sponsor-image-2.png";
 
 const RightSidebar = () => {
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 ">
       <div className="mb-4">
         <div className="flex items-center">
           <h2 className="text-[0.90rem] font-medium text-gray-400 mr-4">

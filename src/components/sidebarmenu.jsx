@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import Message from "../assets/images/message.png";
 import Persons from "../assets/images/persons.png";
 import Bellicon from "../assets/images/bellicon.png";
@@ -13,9 +14,19 @@ import Yahoo from "../assets/images/yahoo.jpg";
 import { CirclePlus } from "lucide-react";
 
 const SidebarMenu = () => {
+  const navigate = useNavigate();
+  const onBackToHome = () => {
+    navigate("/friends");
+  };
   const menuItems = [
     { icon: Message, label: "Messages", count: 2, bgColor: "bg-[#ff0000]" },
-    { icon: Persons, label: "Friends", count: 5, bgColor: "bg-[#ff0000]" },
+    {
+      icon: Persons,
+      label: "Friends",
+      count: 5,
+      bgColor: "bg-[#ff0000]",
+      onClick: onBackToHome,
+    },
     {
       icon: Bellicon,
       label: "Notifications",
@@ -30,7 +41,7 @@ const SidebarMenu = () => {
   ];
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen ">
       {/* Main Menu */}
       <div className="bg-white rounded-lg shadow-sm border border-[#6974b1] p-2 mb-4">
         {menuItems.map((item, index) => {
@@ -39,6 +50,7 @@ const SidebarMenu = () => {
             <div
               key={index}
               className="flex items-center p-3 hover:bg-gray-50 cursor-pointer rounded-lg transition-colors"
+              onClick={item.onClick}
             >
               <div className="relative mr-3">
                 <img
