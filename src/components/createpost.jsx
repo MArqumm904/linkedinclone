@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef  } from "react";
 import { Search } from "lucide-react";
 import Person1 from "../assets/images/person-1.png";
 import PDF from "../assets/images/pdf.png";
@@ -6,10 +6,44 @@ import Videos from "../assets/images/video.png";
 import Camera from "../assets/images/camera.png";
 import PostCreate from "../components/createpost_text";
 import PostCreatePoll from "../components/createpost_poll";
+import CreatePostImage from "../components/createimage_post";
 
 const CreatePost = () => {
   const [showPostCreatePopup, setShowPostCreatePopup] = useState(false);
   const [showPostPollPopup, setShowPostPollPopup] = useState(false);
+  const [showpostimagePopup, setShowpostimagePopup] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const fileInputRef = useRef(null);
+
+  const handlePhotoClick = () => {
+    // File input ko trigger karo
+    fileInputRef.current.click();
+  };
+
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      // File ko URL mein convert karo preview ke liye
+      const imageUrl = URL.createObjectURL(file);
+      setSelectedImage({
+        file: file,
+        url: imageUrl,
+        name: file.name
+      });
+      
+      // Popup show karo
+      setShowpostimagePopup(true);
+    }
+  };
+
+  const handleClosePopup = () => {
+    setShowpostimagePopup(false);
+    // Cleanup: URL ko revoke karo memory leak avoid karne ke liye
+    if (selectedImage) {
+      URL.revokeObjectURL(selectedImage.url);
+      setSelectedImage(null);
+    }
+  };
   const handleOpenPollPopup = () => {
     setShowPostPollPopup(true);
     setShowPostCreatePopup(false);
@@ -57,7 +91,7 @@ const CreatePost = () => {
             />
           </div>
           <span className="font-normal font-sf text-black text-sm">Photo</span>
-        </button> 
+        </button>
       </div>
 
       {/* PostCreate Modal */}
@@ -76,7 +110,19 @@ const CreatePost = () => {
         <hr className="border-gray-300 mb-4 mt-8" />
 
         <div className="flex justify-between items-center px-6">
-          <button className="hover:bg-gray-100 flex items-center space-x-2 px-3 py-2 text-white rounded-lg transition-colors">
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            accept="image/*"
+            style={{ display: "none" }}
+          />
+
+          {/* Photo button */}
+          <button
+            className="hover:bg-gray-100 flex items-center space-x-2 px-3 py-2 text-white rounded-lg transition-colors"
+            onClick={handlePhotoClick}
+          >
             <div className="w-10 h-6 rounded flex items-center justify-center">
               <img
                 src={Camera}
@@ -86,6 +132,14 @@ const CreatePost = () => {
             </div>
             <span className="font-normal font-sf text-black">Photo</span>
           </button>
+
+          {/* Popup component */}
+          {showpostimagePopup && (
+            <CreatePostImage
+              onClose={handleClosePopup}
+              selectedImage={selectedImage}
+            />
+          )}
 
           <button className="hover:bg-gray-100 flex items-center space-x-2 px-3 py-2 text-white rounded-lg transition-colors">
             <div className="w-10 h-6 rounded flex items-center justify-center">
