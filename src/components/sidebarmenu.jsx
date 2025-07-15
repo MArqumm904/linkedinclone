@@ -30,6 +30,9 @@ const SidebarMenu = () => {
   const Gotogroups = () => {
     navigate("/groups");
   };
+  const Gotopages = () => {
+    navigate("/pages");
+  };
   useEffect(() => {
     if (showPostCreatePopup) {
       document.body.style.overflow = "hidden";
@@ -72,7 +75,12 @@ const SidebarMenu = () => {
       bgColor: "bg-[#ff0000]",
       onClick: Gotogroups,
     },
-    { icon: Flag, label: "Pages", bgColor: "bg-[#ff0000]" },
+    {
+      icon: Flag,
+      label: "Pages",
+      bgColor: "bg-[#ff0000]",
+      onClick: Gotopages,
+    },
   ];
 
   return (

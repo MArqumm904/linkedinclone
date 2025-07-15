@@ -6,6 +6,7 @@ import Friends from "./pages/friends";
 import Notifications from "./pages/notifications";
 import Saved from "./pages/saved";
 import Groups from "./pages/groups";
+import Pages from "./pages/pages";
 import "./App.css";
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/saved" element={<Saved />} />
         <Route path="/groups" element={<Groups />} />
+        <Route path="/pages" element={<Pages />} />
       </Routes>
     </Router>
   );
