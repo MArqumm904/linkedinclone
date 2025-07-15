@@ -7,11 +7,6 @@ export default function CreatePostModal({ onClose, onOpenPoll }) {
   const [postText, setPostText] = useState("");
   const [showPostPollPopup, setShowPostPollPopup] = useState(false);
 
-  // const handleClose = () => {
-  //   setIsOpen(false);
-  //   onClose(); 
-  // };
-
   const handlePost = () => {
     console.log("Post submitted:", postText);
     setIsOpen(false);

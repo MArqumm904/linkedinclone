@@ -24,6 +24,12 @@ const SidebarMenu = () => {
   const Gotonoti = () => {
     navigate("/notifications");
   };
+  const Gotosavedposts = () => {
+    navigate("/saved");
+  };
+  const Gotogroups = () => {
+    navigate("/groups");
+  };
   useEffect(() => {
     if (showPostCreatePopup) {
       document.body.style.overflow = "hidden";
@@ -54,8 +60,18 @@ const SidebarMenu = () => {
       bgColor: "bg-[#ff0000]",
       onClick: () => setShowPostCreatePopup(true),
     },
-    { icon: Saved, label: "Saved", bgColor: "bg-[#ff0000]" },
-    { icon: Groups, label: "Groups", bgColor: "bg-[#ff0000]" },
+    {
+      icon: Saved,
+      label: "Saved",
+      bgColor: "bg-[#ff0000]",
+      onClick: Gotosavedposts,
+    },
+    {
+      icon: Groups,
+      label: "Groups",
+      bgColor: "bg-[#ff0000]",
+      onClick: Gotogroups,
+    },
     { icon: Flag, label: "Pages", bgColor: "bg-[#ff0000]" },
   ];
 

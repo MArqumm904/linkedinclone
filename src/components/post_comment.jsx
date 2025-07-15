@@ -12,8 +12,12 @@ import {
 import VideoComponent from "../components/post_video";
 
 const PostComment = ({ onClose, post_image, text, videoUrl }) => {
-  // onClose prop add kiya
   const [newComment, setNewComment] = useState("");
+  const [isBookmarked, setIsBookmarked] = useState(false);
+  const handleClick = () => {
+    setIsBookmarked(!isBookmarked);
+  };
+
   const [comments, setComments] = useState([
     {
       id: 1,
@@ -113,7 +117,6 @@ const PostComment = ({ onClose, post_image, text, videoUrl }) => {
       ],
     },
   ]);
-
   const [replyingTo, setReplyingTo] = useState(null);
   const [replyText, setReplyText] = useState("");
   const [hiddenReplies, setHiddenReplies] = useState({});
@@ -414,8 +417,18 @@ const PostComment = ({ onClose, post_image, text, videoUrl }) => {
               <span>Share</span>
             </button>
           </div>
-          <button className="text-gray-600 hover:text-black">
-            <Bookmark className="w-4 h-4" />
+          <button
+            className={`${
+              isBookmarked
+                ? "text-yellow-500 hover:text-yellow-600"
+                : "text-gray-600 hover:text-black"
+            } transition-colors duration-200`}
+            onClick={handleClick}
+          >
+            <Bookmark
+              className="w-5 h-5"
+              fill={isBookmarked ? "currentColor" : "none"}
+            />
           </button>
         </div>
 
@@ -425,7 +438,7 @@ const PostComment = ({ onClose, post_image, text, videoUrl }) => {
             type="text"
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
-            placeholder="I needed this motivation today. Thank you!"
+            placeholder="Sent a Comment"
             className="flex-1 bg-transparent text-sm text-gray-700 focus:outline-none"
           />
           <button className="text-gray-500 text-xl hover:text-gray-700 mr-2">
