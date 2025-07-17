@@ -8,15 +8,65 @@ import PostTab from "../components/profilecomponents/post_tab";
 const Profile = () => {
   const location = useLocation();
   const [searchParams] = useSearchParams();
-  // Get props from navigation state
-  const number_of_text_posts = location.state?.number_of_text_posts || 0;
-  const number_of_image_posts = location.state?.number_of_image_posts || 0;
-  const number_of_video_posts = location.state?.number_of_video_posts || 0;
+  
+  // Define posts data directly in Profile component
+  const textPosts = [
+    {
+      id: 1,
+      type: "text",
+      content:
+        "Just finished an amazing UI/UX project! Really excited about the results.",
+      timestamp: "2024-01-15T10:30:00Z",
+      likes: 25,
+      comments: 5,
+    },
+    {
+      id: 2,
+      type: "text",
+      content:
+        "Working on some new design patterns today. The creative process never stops!",
+      timestamp: "2024-01-14T14:20:00Z",
+      likes: 18,
+      comments: 3,
+    },
+  ];
 
-  // Get actual content data
-  const text_posts_data = location.state?.text_posts_data || [];
-  const image_posts_data = location.state?.image_posts_data || [];
-  const video_posts_data = location.state?.video_posts_data || [];
+  const imagePosts = [
+    {
+      id: 3,
+      type: "image",
+      content: "Check out this new design mockup I created",
+      image:
+        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR9SRRmhH4X5N2e4QalcoxVbzYsD44C-sQv-w&s",
+      timestamp: "2024-01-13T16:45:00Z",
+      likes: 42,
+      comments: 8,
+    },
+  ];
+
+  const videoPosts = [
+    {
+      id: 4,
+      type: "video",
+      content: "Behind the scenes of my design process",
+      video: "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+      thumbnail:
+        "https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=500&h=400&fit=crop",
+      timestamp: "2024-01-12T09:15:00Z",
+      likes: 67,
+      comments: 12,
+    },
+  ];
+
+  // Use the local data instead of navigation state
+  const number_of_text_posts = textPosts.length;
+  const number_of_image_posts = imagePosts.length;
+  const number_of_video_posts = videoPosts.length;
+
+  const text_posts_data = textPosts;
+  const image_posts_data = imagePosts;
+  const video_posts_data = videoPosts;
+
   const [activeTab, setActiveTab] = useState("Posts");
   const tabs = [
     "Posts",
