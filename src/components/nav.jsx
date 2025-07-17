@@ -9,16 +9,87 @@ import Message from "../assets/images/message.png";
 import Groups from "../assets/images/groups.png";
 import Bellicon from "../assets/images/bellicon.png";
 import AddFriends from "./addfriends";
+import { useNavigate } from "react-router-dom";
+import { usePosts } from '../components/contexts/PostsContext';
 
 export default function NavbarReplica() {
+  const navigate = useNavigate();
   const [showaddfriendsPopup, setShowaddfriendsPopup] = useState(false);
+  const [inputValue, setInputValue] = useState("");
+   const { actions } = usePosts();
+
+  const ToProfile = () => {
+   const textPosts = [
+      {
+        id: 1,
+        type: "text",
+        content: "Just finished an amazing UI/UX project! Really excited about the results.",
+        timestamp: "2024-01-15T10:30:00Z",
+        likes: 25,
+        comments: 5,
+      },
+      {
+        id: 2,
+        type: "text",
+        content: "Working on some new design patterns today. The creative process never stops!",
+        timestamp: "2024-01-14T14:20:00Z",
+        likes: 18,
+        comments: 3,
+      },
+    ];
+
+    const imagePosts = [
+      {
+        id: 3,
+        type: "image",
+        content: "Check out this new design mockup I created",
+        image: "https://images.stockcake.com/public/5/7/e/57e9c688-8448-4c05-87c3-3985032c665f_large/luxurious-office-view-stockcake.jpg",
+        timestamp: "2024-01-13T16:45:00Z",
+        likes: 42,
+        comments: 8,
+      },
+    ];
+
+    const videoPosts = [
+      {
+        id: 4,
+        type: "video",
+        content: "Behind the scenes of my design process",
+        video: "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+        thumbnail: "https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=500&h=400&fit=crop",
+        timestamp: "2024-01-12T09:15:00Z",
+        likes: 67,
+        comments: 12,
+      },
+    ];
+
+    // Initialize posts in context
+    actions.initializePosts(textPosts, imagePosts, videoPosts);
+
+    // Navigate to profile
+    navigate("/profile"); 
+  };
+
+  const onBackToHome = () => {
+    navigate("/");
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter" && inputValue.trim()) {
+      // Navigate to browse route with search query
+      window.location.href = `/browse?q=${encodeURIComponent(
+        inputValue.trim()
+      )}`;
+    }
+  };
+
   useEffect(() => {
     if (showaddfriendsPopup) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "auto";
     }
-  }, [showaddfriendsPopup,]);
+  }, [showaddfriendsPopup]);
   return (
     <>
       {showaddfriendsPopup && (
@@ -48,6 +119,9 @@ export default function NavbarReplica() {
                   <input
                     type="text"
                     placeholder="Search"
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    onKeyPress={handleKeyPress}
                     className="bg-transparent outline-none text-[#333f7d] placeholder-[#333f7d] text-sm w-full"
                   />
                 </div>
@@ -60,6 +134,7 @@ export default function NavbarReplica() {
               <div className="flex flex-col items-center cursor-pointer relative">
                 <img
                   src={Homeicon}
+                  onClick={onBackToHome}
                   alt="Custom Icon"
                   className="w-9 h-full object-cover"
                 />
@@ -96,7 +171,10 @@ export default function NavbarReplica() {
               </button>
 
               {/* Profile Icon */}
-              <div className="w-9 h-9 bg-[#e4e4e4] rounded-full flex items-center justify-center cursor-pointer hover:bg-[#e4e4e4] transition-colors">
+              <div
+                onClick={ToProfile}
+                className="w-9 h-9 bg-[#e4e4e4] rounded-full flex items-center justify-center cursor-pointer hover:bg-[#e4e4e4] transition-colors"
+              >
                 <User className="w-5 h-5 text-[#333f7d]" />
               </div>
             </div>

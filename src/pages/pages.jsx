@@ -164,6 +164,7 @@ const Pages = () => {
                   <input
                     type="text"
                     placeholder="Search Pages"
+      
                     className="w-full bg-[#F5F5FA] text-[#2F3C80] font-medium placeholder-[#2F3C80] rounded-full pl-12 pr-4 py-4 text-sm outline-none"
                   />
                 </div>
