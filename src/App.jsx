@@ -11,12 +11,10 @@ import Pages from "./pages/pages";
 import Browse from "./pages/browse";
 import Profile from "./pages/profile";
 import RouteLoader from "./components/preloader/RouteLoader"; 
-import { PostsProvider } from './components/contexts/PostsContext';
 import "./App.css";
 
 function App() {
   return (
-    <PostsProvider>
     <Router>
       <RouteLoader>
         <Routes>
@@ -33,7 +31,6 @@ function App() {
         </Routes>
       </RouteLoader>
     </Router>
-    </PostsProvider>
   );
 }
 

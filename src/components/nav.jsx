@@ -10,20 +10,19 @@ import Groups from "../assets/images/groups.png";
 import Bellicon from "../assets/images/bellicon.png";
 import AddFriends from "./addfriends";
 import { useNavigate } from "react-router-dom";
-import { usePosts } from '../components/contexts/PostsContext';
 
 export default function NavbarReplica() {
   const navigate = useNavigate();
   const [showaddfriendsPopup, setShowaddfriendsPopup] = useState(false);
   const [inputValue, setInputValue] = useState("");
-   const { actions } = usePosts();
 
   const ToProfile = () => {
-   const textPosts = [
+    const textPosts = [
       {
         id: 1,
         type: "text",
-        content: "Just finished an amazing UI/UX project! Really excited about the results.",
+        content:
+          "Just finished an amazing UI/UX project! Really excited about the results.",
         timestamp: "2024-01-15T10:30:00Z",
         likes: 25,
         comments: 5,
@@ -31,7 +30,8 @@ export default function NavbarReplica() {
       {
         id: 2,
         type: "text",
-        content: "Working on some new design patterns today. The creative process never stops!",
+        content:
+          "Working on some new design patterns today. The creative process never stops!",
         timestamp: "2024-01-14T14:20:00Z",
         likes: 18,
         comments: 3,
@@ -43,7 +43,8 @@ export default function NavbarReplica() {
         id: 3,
         type: "image",
         content: "Check out this new design mockup I created",
-        image: "https://images.stockcake.com/public/5/7/e/57e9c688-8448-4c05-87c3-3985032c665f_large/luxurious-office-view-stockcake.jpg",
+        image:
+          "https://images.unsplash.com/photo-1555421689-491a97ff2040?w=500&h=400&fit=crop",
         timestamp: "2024-01-13T16:45:00Z",
         likes: 42,
         comments: 8,
@@ -56,18 +57,24 @@ export default function NavbarReplica() {
         type: "video",
         content: "Behind the scenes of my design process",
         video: "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
-        thumbnail: "https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=500&h=400&fit=crop",
+        thumbnail:
+          "https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=500&h=400&fit=crop",
         timestamp: "2024-01-12T09:15:00Z",
         likes: 67,
         comments: 12,
       },
     ];
 
-    // Initialize posts in context
-    actions.initializePosts(textPosts, imagePosts, videoPosts);
-
-    // Navigate to profile
-    navigate("/profile"); 
+    navigate("/profile", {
+      state: {
+        number_of_text_posts: textPosts.length,
+        number_of_image_posts: imagePosts.length,
+        number_of_video_posts: videoPosts.length,
+        text_posts_data: textPosts,
+        image_posts_data: imagePosts,
+        video_posts_data: videoPosts,
+      },
+    });
   };
 
   const onBackToHome = () => {

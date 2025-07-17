@@ -1,6 +1,4 @@
-// Updated PostTab Component
 import React, { useState, useRef } from "react";
-import { usePosts } from "../contexts/PostsContext";
 import {
   MoreHorizontal,
   ThumbsUp,
@@ -11,20 +9,22 @@ import {
   Eye,
   Play,
 } from "lucide-react";
+import Person1 from "../../assets/images/person-1.png";
+import PostImage from "../../assets/images/postimage.png";
+import SponserImage from "../../assets/images/sponsor-image.png";
+import Upload from "../../assets/images/upload.png";
 
-const PostTab = ({ 
-  number_of_text_posts, 
-  number_of_image_posts, 
-  number_of_video_posts,
-  text_posts_data,
-  image_posts_data,
-  video_posts_data
+const PostTab = ({
+  text_posts_data = [],
+  image_posts_data = [],
+  video_posts_data = [],
 }) => {
-  const { state, actions } = usePosts(); // KEY CHANGE: Get state from context
   const [showMenu, setShowMenu] = useState({});
   const [showFullText, setShowFullText] = useState({});
   const [isLiked, setIsLiked] = useState({});
   const [showAnimation, setShowAnimation] = useState({});
+  const [showCommentPopup, setShowCommentPopup] = useState(false);
+  const [showSharePopup, setShowSharePopup] = useState(false);
   const [videoPlaying, setVideoPlaying] = useState({});
   const menuRef = useRef(null);
 
@@ -37,52 +37,44 @@ const PostTab = ({
     );
   };
 
-  const handleUpdatePost = (postType, postId, updatedData) => {
-    actions.updatePost(postType, postId, updatedData);
-  };
-
-  const handleDeletePost = (postType, postId) => {
-    actions.deletePost(postType, postId);
+  const handleAddToStoryFromMenu = (postId) => {
     setShowMenu((prev) => ({ ...prev, [postId]: false }));
-  };
-
-  const handleEditPost = (post) => {
-    // Edit functionality
-    const newContent = prompt("Edit your post:", post.content);
-    if (newContent && newContent !== post.content) {
-      const postTypeMap = {
-        text: 'textPosts',
-        image: 'imagePosts',
-        video: 'videoPosts'
-      };
-      handleUpdatePost(postTypeMap[post.type], post.id, { content: newContent });
-    }
-    setShowMenu((prev) => ({ ...prev, [post.uniqueId]: false }));
   };
 
   const toggleMenu = (postId) => {
     setShowMenu((prev) => ({ ...prev, [postId]: !prev[postId] }));
   };
 
-  // KEY CHANGE: Use state from context instead of props
+  const toggleFullText = (postId) => {
+    setShowFullText((prev) => ({ ...prev, [postId]: !prev[postId] }));
+  };
+
+  const handleVideoPlay = (postId) => {
+    setVideoPlaying((prev) => ({ ...prev, [postId]: true }));
+  };
+
+  const handleVideoPause = (postId) => {
+    setVideoPlaying((prev) => ({ ...prev, [postId]: false }));
+  };
+
   const allPosts = [
-    ...state.textPosts.map((post, index) => ({
+    ...text_posts_data.map((post, index) => ({
       ...post,
       type: "text",
-      id: post.id || `text_${index}`,
-      uniqueId: `text_${post.id || index}`,
+      id: `text_${index}`,
+      uniqueId: `text_${index}`,
     })),
-    ...state.imagePosts.map((post, index) => ({
+    ...image_posts_data.map((post, index) => ({
       ...post,
       type: "image",
-      id: post.id || `image_${index}`,
-      uniqueId: `image_${post.id || index}`,
+      id: `image_${index}`,
+      uniqueId: `image_${index}`,
     })),
-    ...state.videoPosts.map((post, index) => ({
+    ...video_posts_data.map((post, index) => ({
       ...post,
       type: "video",
-      id: post.id || `video_${index}`,
-      uniqueId: `video_${post.id || index}`,
+      id: `video_${index}`,
+      uniqueId: `video_${index}`,
     })),
   ];
 
@@ -90,18 +82,9 @@ const PostTab = ({
     (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
   );
 
-  // KEY CHANGE: Add debug log to check if posts are available
-  console.log("Posts available:", {
-    textPosts: state.textPosts,
-    imagePosts: state.imagePosts,
-    videoPosts: state.videoPosts,
-    allPosts: allPosts
-  });
-
   const renderPostContent = (post) => {
     switch (post.type) {
       case "text":
-        console.log(post.content);
         return (
           <div className="px-5 py-4 bg-gray-50 rounded-lg mb-3">
             <p className="text-gray-800 text-3xl leading-relaxed font-sf">
@@ -115,7 +98,7 @@ const PostTab = ({
           <div className="pb-3 w-full">
             <div className="relative bg-gradient-to-b from-yellow-300 to-yellow-400 overflow-hidden w-full">
               <img
-                src={post.image}
+                src={post.image || PostImage}
                 alt="Post"
                 className="w-full h-[28rem] object-contain"
               />
@@ -129,14 +112,20 @@ const PostTab = ({
             <div className="relative bg-black overflow-hidden w-full">
               <video
                 controls
+                // poster={post.thumbnail}
                 className="w-full h-[35rem] object-cover"
-                onPlay={() => setVideoPlaying(prev => ({ ...prev, [post.uniqueId]: true }))}
-                onPause={() => setVideoPlaying(prev => ({ ...prev, [post.uniqueId]: false }))}
+                onPlay={() => handleVideoPlay(post.uniqueId)}
+                onPause={() => handleVideoPause(post.uniqueId)}
+                style={{
+                  outline: "none",
+                  border: "none",
+                }}
               >
                 <source src={post.video} type="video/mp4" />
                 Your browser does not support the video tag.
               </video>
 
+              {/* Custom Play Button Overlay - Only show when video is not playing */}
               {!videoPlaying[post.uniqueId] && (
                 <div
                   className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 cursor-pointer"
@@ -162,109 +151,244 @@ const PostTab = ({
     }
   };
 
+  const formatTimeAgo = (timestamp) => {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffInHours = Math.floor((now - date) / (1000 * 60 * 60));
+
+    if (diffInHours < 24) {
+      return `${diffInHours} Hours Ago`;
+    } else {
+      const diffInDays = Math.floor(diffInHours / 24);
+      return `${diffInDays} Days Ago`;
+    }
+  };
+
   return (
     <div className="w-full max-w-full py-6">
       <div className="grid grid-cols-12 gap-6 w-full">
+        {/* Left Side - Post Section (7 cols) */}
         <div className="col-span-12 lg:col-span-7 w-full">
-          {sortedPosts.length === 0 ? (
-            // KEY CHANGE: Add fallback for empty posts
-            <div className="bg-white rounded-lg shadow-sm border border-[#6974b1] p-8 text-center">
-              <p className="text-gray-500">No posts available yet.</p>
-            </div>
-          ) : (
-            sortedPosts.map((post) => (
-              <div
-                key={post.uniqueId}
-                className="bg-white rounded-lg shadow-sm border border-[#6974b1] mb-4 w-full"
-              >
-                {/* Header */}
-                <div className="flex items-center justify-between p-5 pb-3 relative">
-                  <div className="flex items-center">
-                    <div className="w-12 h-12 rounded-md flex items-center justify-center mr-3">
-                      <div className="w-full h-full bg-gray-300 rounded-md"></div>
-                    </div>
-                    <div>
-                      <span className="font-semibold text-gray-900 text-sm">
+          {sortedPosts.map((post) => (
+            <div
+              key={post.uniqueId}
+              className="bg-white rounded-lg shadow-sm border border-[#6974b1] mb-4 w-full"
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between p-5 pb-3 relative">
+                {/* Left profile + name block */}
+                <div className="flex items-center">
+                  <div className="w-12 h-12 rounded-md flex items-center justify-center mr-3">
+                    <img
+                      src={Person1}
+                      alt="Profile"
+                      className="w-full h-full object-cover rounded-md cursor-pointer"
+                    />
+                  </div>
+                  <div>
+                    <div className="flex items-center">
+                      <span className="font-semibold text-gray-900 text-sm cursor-pointer">
                         Design Foundation
                       </span>
-                      <div className="text-gray-500 text-xs">
-                        2 hours ago
-                      </div>
                     </div>
-                  </div>
-
-                  {/* Menu */}
-                  <div className="relative" ref={menuRef}>
-                    <button
-                      onClick={() => toggleMenu(post.uniqueId)}
-                      className="text-gray-400 hover:text-gray-600"
-                    >
-                      <MoreHorizontal className="w-5 h-5" />
-                    </button>
-
-                    {showMenu[post.uniqueId] && (
-                      <div className="absolute right-0 mt-2 w-52 bg-white border border-gray-200 rounded-md shadow-lg z-10 p-2 space-y-2 text-sm">
-                        <button 
-                          onClick={() => handleEditPost(post)}
-                          className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded-md text-left"
-                        >
-                          <Pencil className="w-4 h-4" />
-                          <span>Edit Post</span>
-                        </button>
-                        <button className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded-md text-left">
-                          <Eye className="w-4 h-4" />
-                          <span>View Profile</span>
-                        </button>
-                        <button 
-                          onClick={() => handleDeletePost(
-                            post.type === 'text' ? 'textPosts' : 
-                            post.type === 'image' ? 'imagePosts' : 'videoPosts',
-                            post.id
-                          )}
-                          className="w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded-md text-left text-red-600"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                          <span>Delete Post</span>
-                        </button>
-                      </div>
-                    )}
+                    <span className="text-gray-500 text-xs">
+                      {formatTimeAgo(post.timestamp)}
+                    </span>
                   </div>
                 </div>
 
-                {/* Post Content */}
-                {post.content && post.type !== "text" && (
-                  <p className="px-5 text-gray-600 text-sm mb-3">
-                    {post.content}
-                  </p>
-                )}
+                {/* More icon + dropdown */}
+                <div className="relative" ref={menuRef}>
+                  <button
+                    className="text-gray-400 hover:text-gray-600"
+                    onClick={() => toggleMenu(post.uniqueId)}
+                  >
+                    <MoreHorizontal className="w-5 h-5 mb-5 mx-1" />
+                  </button>
 
-                {renderPostContent(post)}
+                  {showMenu[post.uniqueId] && (
+                    <div className="absolute right-0 -mt-3 w-52 bg-white border border-gray-200 rounded-md shadow-md z-10 p-2 space-y-2 text-sm">
+                      <button className="w-full flex items-center gap-2 px-3 py-1 hover:bg-gray-100 rounded-md text-left">
+                        <span>
+                          <Pencil />
+                        </span>
+                        <span>Edit Post</span>
+                      </button>
+                      <button className="w-full flex items-center gap-2 px-3 py-1 hover:bg-gray-100 rounded-md text-left">
+                        <span>
+                          <Eye />
+                        </span>
+                        <span>View The Profile</span>
+                      </button>
+                      <button className="w-full flex items-center gap-2 px-3 py-1 hover:bg-gray-100 rounded-md text-left text-red-600 font-medium">
+                        <span>
+                          <Trash2 />
+                        </span>
+                        <span>Delete Post</span>
+                      </button>
+                      <button
+                        className="w-full flex items-center gap-2 px-3 py-1 hover:bg-gray-100 rounded-md text-left"
+                        onClick={() => handleAddToStoryFromMenu(post.uniqueId)}
+                      >
+                        <span>
+                          <img src={Upload} className="w-6 h-6" alt="" />
+                        </span>
+                        <span>Add to story</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
 
-                {/* Actions */}
-                <div className="border-t border-gray-200 px-9 py-5">
-                  <div className="flex justify-between">
-                    <button
-                      onClick={() => handleLike(post.uniqueId)}
-                      className={`flex items-center space-x-2 transition-colors ${
-                        isLiked[post.uniqueId] ? "text-blue-500" : "text-gray-600"
-                      }`}
-                    >
-                      <ThumbsUp className="w-5 h-5" />
-                      <span>Like</span>
-                    </button>
-                    <button className="flex items-center space-x-2 text-gray-600">
-                      <MessageCircle className="w-5 h-5" />
-                      <span>Comment</span>
-                    </button>
-                    <button className="flex items-center space-x-2 text-gray-600">
-                      <Forward className="w-5 h-5" />
-                      <span>Share</span>
-                    </button>
+              {/* Post Description */}
+              {post.content && post.type !== "text" && (
+                <p className="px-5 text-gray-600 text-sm mb-3 font-sf mt-3 font-medium">
+                  {/* Mobile: Toggle text */}
+                  <span className="block md:hidden">
+                    {showFullText[post.uniqueId]
+                      ? post.content
+                      : post.content.length > 100
+                      ? `${post.content.substring(0, 100)}...`
+                      : post.content}
+                    {post.content.length > 100 && (
+                      <span
+                        className="text-blue-500 font-semibold ml-1 cursor-pointer"
+                        onClick={() => toggleFullText(post.uniqueId)}
+                      >
+                        {showFullText[post.uniqueId] ? "See Less" : "See More"}
+                      </span>
+                    )}
+                  </span>
+
+                  {/* Desktop: Always show full text, no toggle */}
+                  <span className="hidden md:block">{post.content}</span>
+                </p>
+              )}
+
+              {/* Content based on post type */}
+              {renderPostContent(post)}
+
+              {/* Reactions */}
+              <div className="px-4 py-3 border-b border-gray-100">
+                <div className="flex items-center justify-between">
+                  {/* Left side - Reaction icons and count */}
+                  <div className="flex items-center space-x-2 ms-1">
+                    <div className="flex items-center -space-x-2">
+                      <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center border-2 border-white z-10">
+                        <ThumbsUp className="w-4 h-4 text-white fill-white" />
+                      </div>
+                      <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center border-2 border-white">
+                        <span className="text-white text-lg">❤️</span>
+                      </div>
+                    </div>
+                    <span className="text-sm font-medium text-gray-700">
+                      {post.likes || 0} Likes
+                    </span>
+                  </div>
+
+                  {/* Right side - Comments and views */}
+                  <div className="flex items-center space-x-4 text-sm text-gray-500">
+                    <span>{post.comments || 0} Comments</span>
+                    <span className="text-gray-300">|</span>
+                    <span>{post.views || 0} Views</span>
                   </div>
                 </div>
               </div>
-            ))
-          )}
+
+              {/* Action Buttons */}
+              <div className="border-t border-gray-200 px-9 py-5">
+                <div className="flex justify-between">
+                  <button
+                    onClick={() => handleLike(post.uniqueId)}
+                    className={`flex items-center space-x-2 transition-colors ${
+                      isLiked[post.uniqueId]
+                        ? "text-blue-500"
+                        : "text-gray-600 hover:text-blue-500"
+                    }`}
+                  >
+                    <div className="relative">
+                      <ThumbsUp
+                        className={`w-5 h-5 transition-all duration-300 ${
+                          showAnimation[post.uniqueId] ? "animate-bounce" : ""
+                        }`}
+                        fill={isLiked[post.uniqueId] ? "currentColor" : "none"}
+                      />
+
+                      {/* Animation effect */}
+                      {showAnimation[post.uniqueId] && (
+                        <div className="absolute inset-0 pointer-events-none">
+                          <div className="absolute -top-1 left-0 animate-ping opacity-75">
+                            <ThumbsUp
+                              className="w-5 h-5 text-blue-500"
+                              fill="currentColor"
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <span className="text-sm font-medium">Like</span>
+                  </button>
+                  <button
+                    onClick={() => setShowCommentPopup(true)}
+                    className="flex items-center space-x-2 text-gray-600 hover:text-blue-500 transition-colors"
+                  >
+                    <MessageCircle className="w-5 h-5" />
+                    <span className="text-sm font-medium">Comment</span>
+                  </button>
+
+                  <button
+                    onClick={() => setShowSharePopup(true)}
+                    className="flex items-center space-x-2 text-gray-600 hover:text-blue-500 transition-colors"
+                  >
+                    <Forward className="w-5 h-5" />
+                    <span className="text-sm font-medium">Share</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Right Side - Page Cards Section (5 cols) */}
+        <div className="col-span-12 lg:col-span-5 w-full">
+          <div className="space-y-4 w-full">
+            {/* First Page Card - Leadership Academy */}
+            <div className="bg-white border border-[#6873b0] rounded-lg shadow-lg overflow-hidden mb-7">
+              <div className="bg-gray-100 border-b border-blue-400 rounded-t-lg p-4">
+                <h2 className="text-gray-600 font-sf text-xl font-medium">
+                  Sponsors
+                </h2>
+              </div>
+              {/* Header Section */}
+              <div className="relative p-4">
+                {/* Warning Icon and Title */}
+                <div className="flex items-center mb-3">
+                  <div className="w-6 h-6 rounded-full flex items-center justify-center mr-3">
+                    <span className="text-black font-bold text-lg">🖥️</span>
+                  </div>
+                  <h3 className="text-black font-semibold text-xl font-sf">
+                    "Join UI/UX Design Bootcamp – 50% Off"
+                  </h3>
+                </div>
+
+                {/* Website Link */}
+                <p className="text-blue-700 underline text-sm mb-4 cursor-pointer">
+                  https://www.reallygreatsite.com
+                </p>
+              </div>
+
+              {/* Main Content Section */}
+              <div className="relative flex items-center h-[450px]">
+                <img
+                  src={SponserImage}
+                  alt="Scholarship notification background"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            </div>
+            {/* first card ends here */}
+          </div>
         </div>
       </div>
     </div>

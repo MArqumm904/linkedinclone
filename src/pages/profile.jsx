@@ -4,10 +4,19 @@ import { Settings, Edit3, MoreHorizontal, MapPin } from "lucide-react";
 import NavbarReplica from "../components/nav";
 import Person1 from "../assets/images/person-1.png";
 import PostTab from "../components/profilecomponents/post_tab";
-import { usePosts } from "../components/contexts/PostsContext";
 
 const Profile = () => {
-  const { state } = usePosts();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  // Get props from navigation state
+  const number_of_text_posts = location.state?.number_of_text_posts || 0;
+  const number_of_image_posts = location.state?.number_of_image_posts || 0;
+  const number_of_video_posts = location.state?.number_of_video_posts || 0;
+
+  // Get actual content data
+  const text_posts_data = location.state?.text_posts_data || [];
+  const image_posts_data = location.state?.image_posts_data || [];
+  const video_posts_data = location.state?.video_posts_data || [];
   const [activeTab, setActiveTab] = useState("Posts");
   const tabs = [
     "Posts",
@@ -62,8 +71,8 @@ const Profile = () => {
     console.log("Navigate to home");
   };
 
-  // const totalPosts =
-  //   number_of_text_posts + number_of_image_posts + number_of_video_posts;
+  const totalPosts =
+    number_of_text_posts + number_of_image_posts + number_of_video_posts;
 
   return (
     <>
@@ -128,8 +137,7 @@ const Profile = () => {
                   <div className="flex space-x-7 mb-8">
                     <div className="flex items-center space-x-1 font-sf">
                       <span className="text-lg font-semibold text-gray-900">
-                        {/* {totalPosts} */}
-                        90
+                        {totalPosts}
                       </span>
                       <span className="text-md text-gray-500 font-sf font-medium">
                         post
@@ -241,12 +249,12 @@ const Profile = () => {
           {/* Tab Content */}
           {activeTab === "Posts" && (
             <PostTab
-              number_of_text_posts={state.textPosts.length}
-              number_of_image_posts={state.imagePosts.length}
-              number_of_video_posts={state.videoPosts.length}
-              text_posts_data={state.textPosts}
-              image_posts_data={state.imagePosts}
-              video_posts_data={state.videoPosts}
+              number_of_text_posts={number_of_text_posts}
+              number_of_image_posts={number_of_image_posts}
+              number_of_video_posts={number_of_video_posts}
+              text_posts_data={text_posts_data}
+              image_posts_data={image_posts_data}
+              video_posts_data={video_posts_data}
             />
           )}
           {activeTab === "About" && (
