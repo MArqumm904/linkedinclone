@@ -15,7 +15,7 @@ export default function CreatePostModal({ onClose, onOpenPoll }) {
 
   const handlePollClick = () => {
     if (onOpenPoll) {
-      onOpenPoll(); // Poll open karne ke liye parent function call karo
+      onOpenPoll(); 
     }
   };
 

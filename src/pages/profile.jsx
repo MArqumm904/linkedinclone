@@ -1,15 +1,15 @@
-import { useState } from "react";
-import { useLocation, useSearchParams } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { Settings, Edit3, MoreHorizontal, MapPin } from "lucide-react";
 import NavbarReplica from "../components/nav";
 import Person1 from "../assets/images/person-1.png";
 import PostTab from "../components/profilecomponents/post_tab";
+import EditCover from "../components/profilecomponents/edit_cover";
+import EditProfile from "../components/profilecomponents/edit_profile_photo";
+import EditIntro from "../components/profilecomponents/edit_intro";
+import ReqMembership from "../components/profilecomponents/request_membership";
+import AboutTab from "../components/profilecomponents/about_tab";
 
 const Profile = () => {
-  const location = useLocation();
-  const [searchParams] = useSearchParams();
-  
-  // Define posts data directly in Profile component
   const textPosts = [
     {
       id: 1,
@@ -37,7 +37,7 @@ const Profile = () => {
       type: "image",
       content: "Check out this new design mockup I created",
       image:
-        "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR9SRRmhH4X5N2e4QalcoxVbzYsD44C-sQv-w&s",
+        "https://images.unsplash.com/photo-1555421689-491a97ff2040?w=500&h=400&fit=crop",
       timestamp: "2024-01-13T16:45:00Z",
       likes: 42,
       comments: 8,
@@ -49,7 +49,8 @@ const Profile = () => {
       id: 4,
       type: "video",
       content: "Behind the scenes of my design process",
-      video: "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+      video:
+        "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
       thumbnail:
         "https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=500&h=400&fit=crop",
       timestamp: "2024-01-12T09:15:00Z",
@@ -58,7 +59,10 @@ const Profile = () => {
     },
   ];
 
-  // Use the local data instead of navigation state
+  const [showeditcoverPopup, setShoweditcoverPopup] = useState(false);
+  const [showeditprofilePopup, setShoweditprofilePopup] = useState(false);
+  const [showeditintroPopup, setShoweditintroPopup] = useState(false);
+  const [showreqmemPopup, setShowreqmemPopup] = useState(false);
   const number_of_text_posts = textPosts.length;
   const number_of_image_posts = imagePosts.length;
   const number_of_video_posts = videoPosts.length;
@@ -117,15 +121,40 @@ const Profile = () => {
     },
   ];
 
-  const onBackToHome = () => {
-    console.log("Navigate to home");
-  };
-
   const totalPosts =
     number_of_text_posts + number_of_image_posts + number_of_video_posts;
 
+  useEffect(() => {
+    if (
+      showeditcoverPopup ||
+      showeditprofilePopup ||
+      showeditintroPopup ||
+      showreqmemPopup
+    ) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "auto";
+    }
+  }, [
+    showeditcoverPopup,
+    showeditprofilePopup,
+    showeditintroPopup,
+    showreqmemPopup,
+  ]);
   return (
     <>
+      {showeditcoverPopup && (
+        <EditCover onClose={() => setShoweditcoverPopup(false)} />
+      )}
+      {showeditprofilePopup && (
+        <EditProfile onClose={() => setShoweditprofilePopup(false)} />
+      )}
+      {showeditintroPopup && (
+        <EditIntro onClose={() => setShoweditintroPopup(false)} />
+      )}
+      {showreqmemPopup && (
+        <ReqMembership onClose={() => setShowreqmemPopup(false)} />
+      )}
       <NavbarReplica />
       <div className="min-h-screen bg-gray-100">
         <div className="max-w-[86rem] mx-auto px-0 md:px-4 py-0 md:py-4">
@@ -140,7 +169,10 @@ const Profile = () => {
                     alt="Cover"
                     className="w-full h-full object-cover"
                   />
-                  <button className="absolute top-4 right-4 border border-[#707070] bg-white bg-opacity-80 p-2 rounded-full hover:bg-opacity-100 transition-all">
+                  <button
+                    onClick={() => setShoweditcoverPopup(true)}
+                    className="absolute top-4 right-4 border border-[#707070] bg-white bg-opacity-80 p-2 rounded-full hover:bg-opacity-100 transition-all"
+                  >
                     <Edit3 className="w-4 h-4 text-gray-600" />
                   </button>
                 </div>
@@ -156,14 +188,21 @@ const Profile = () => {
                         className="w-full h-full object-cover"
                       />
                     </div>
-                    <button className="absolute bottom-2 -right-5 bg-white border border-[#707070] p-2 rounded-full hover:bg-gray-50 transition-colors">
+
+                    <button
+                      onClick={() => setShoweditprofilePopup(true)}
+                      className="absolute bottom-2 -right-5 bg-white border border-[#707070] p-2 rounded-full hover:bg-gray-50 transition-colors"
+                    >
                       <Edit3 className="w-4 h-4 text-gray-600" />
                     </button>
                   </div>
 
                   <div className="relative mb-7 bg-white rounded-md mt-5">
                     {/* Edit Button */}
-                    <button className="absolute top-10 -right-5 bg-white border border-[#707070] p-2 rounded-full hover:bg-gray-50 transition-colors">
+                    <button
+                      onClick={() => setShoweditintroPopup(true)}
+                      className="absolute top-10 -right-5 bg-white border border-[#707070] p-2 rounded-full hover:bg-gray-50 transition-colors"
+                    >
                       <Edit3 className="w-4 h-4 text-gray-600" />
                     </button>
 
@@ -213,7 +252,10 @@ const Profile = () => {
 
                   {/* Action Buttons */}
                   <div className="flex space-x-3">
-                    <button className=" bg-[#0017e7] text-white py-2.5 px-6 rounded-md hover:bg-[#0012b7] transition-colors  font-sf">
+                    <button
+                      onClick={() => setShowreqmemPopup(true)}
+                      className=" bg-[#0017e7] text-white py-2.5 px-6 rounded-md hover:bg-[#0012b7] transition-colors  font-sf"
+                    >
                       Request Membership
                     </button>
                     <button className="px-6 py-2.5 border border-black text-gray-700 rounded-md hover:bg-gray-50 transition-colors font-sf font-medium">
@@ -307,14 +349,7 @@ const Profile = () => {
               video_posts_data={video_posts_data}
             />
           )}
-          {activeTab === "About" && (
-            <div className="bg-white rounded-lg border border-[#7c87bc] shadow-lg mt-4">
-              <div className="p-6">
-                <h3 className="text-xl font-bold mb-4">About</h3>
-                <p className="text-gray-700">About content will go here...</p>
-              </div>
-            </div>
-          )}
+          {activeTab === "About" && <AboutTab />}
         </div>
       </div>
     </>
