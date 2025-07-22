@@ -13,21 +13,18 @@ const CertificateCard = ({ certificate, onEdit }) => {
     }
   }, [showCertificate]);
 
-  // Function to handle viewing certificate
   const handleViewCertificate = () => {
     if (certificate.certificateFile) {
-      // Create URL from the uploaded file
       const url = URL.createObjectURL(certificate.certificateFile);
       setImageUrl(url);
       setShowCertificate(true);
     }
   };
 
-  // Function to close certificate viewer
   const handleCloseCertificate = () => {
     setShowCertificate(false);
     if (imageUrl) {
-      URL.revokeObjectURL(imageUrl); // Clean up the object URL
+      URL.revokeObjectURL(imageUrl);
       setImageUrl(null);
     }
   };

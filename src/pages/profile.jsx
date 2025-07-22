@@ -8,6 +8,9 @@ import EditProfile from "../components/profilecomponents/edit_profile_photo";
 import EditIntro from "../components/profilecomponents/edit_intro";
 import ReqMembership from "../components/profilecomponents/request_membership";
 import AboutTab from "../components/profilecomponents/about_tab";
+import MediaTabPhotos from "../components/profilecomponents/media_tab_photos";
+import AboutFriendsTab from "../components/profilecomponents/about_friends_tab";
+import AboutAgencyTab from "../components/profilecomponents/about_agency_tab";
 
 const Profile = () => {
   const textPosts = [
@@ -339,7 +342,7 @@ const Profile = () => {
           </div>
 
           {/* Tab Content */}
-          {activeTab === "Posts" && (
+          {(activeTab === "Posts" || activeTab === "My Work") && (
             <PostTab
               number_of_text_posts={number_of_text_posts}
               number_of_image_posts={number_of_image_posts}
@@ -350,6 +353,9 @@ const Profile = () => {
             />
           )}
           {activeTab === "About" && <AboutTab />}
+          {activeTab === "Media" && <MediaTabPhotos />}
+          {activeTab === "Friends" && <AboutFriendsTab />}
+          {activeTab === "My Agencies" && <AboutAgencyTab />}
         </div>
       </div>
     </>
