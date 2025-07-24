@@ -1,5 +1,6 @@
-import React, { useState, useEffect  } from "react";
+import React, { useState, useEffect } from "react";
 import AgencyDetailsModal from "./about_agency_tab_details";
+import RequestAgencyModal from "./about_request_agency";
 import { X, MapPin } from "lucide-react";
 
 const affiliatedAgencies = [
@@ -86,7 +87,10 @@ const TabButton = ({ active, onClick, children }) => (
 const AgencyCard = ({ agency, invitation, onViewDetails }) => (
   <div className="border border-black rounded-lg bg-white p-6 flex flex-col gap-2 mb-5 relative  mx-auto">
     {/* Close Icon */}
-    <button className="absolute top-4 right-4 text-gray-400 hover:text-gray-600" tabIndex={-1}>
+    <button
+      className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+      tabIndex={-1}
+    >
       <X className="w-7 h-7" />
     </button>
     <div className="flex items-start gap-4">
@@ -98,8 +102,12 @@ const AgencyCard = ({ agency, invitation, onViewDetails }) => (
       />
       <div className="flex-1 min-w-0">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="font-bold text-lg text-black font-sf">{agency.name}</span>
-          <span className="text-xs text-gray-500 font-sf">{agency.duration}</span>
+          <span className="font-bold text-lg text-black font-sf">
+            {agency.name}
+          </span>
+          <span className="text-xs text-gray-500 font-sf">
+            {agency.duration}
+          </span>
           {agency.status && (
             <span className="text-xs font-medium text-blue-700 font-sf cursor-pointer hover:underline">
               &ndash; {agency.status}
@@ -113,9 +121,7 @@ const AgencyCard = ({ agency, invitation, onViewDetails }) => (
       </div>
     </div>
     <div className="mt-3 mb-2">
-      <p className="text-gray-500 text-xl font-sf">
-        {agency.description}
-      </p>
+      <p className="text-gray-500 text-xl font-sf">{agency.description}</p>
     </div>
     <div className="mt-2">
       <button
@@ -132,6 +138,7 @@ const AboutAgencyTab = () => {
   const [activeTab, setActiveTab] = useState("affiliated");
   const [showModal, setShowModal] = useState(false);
   const [selectedAgency, setSelectedAgency] = useState(null);
+  const [showRequestModal, setShowRequestModal] = useState(false);
 
   const handleViewDetails = (agency) => {
     setSelectedAgency(agency);
@@ -142,13 +149,21 @@ const AboutAgencyTab = () => {
     setShowModal(false);
     setSelectedAgency(null);
   };
+
+  const handleOpenRequestModal = () => {
+    setShowRequestModal(true);
+  };
+  const handleCloseRequestModal = () => {
+    setShowRequestModal(false);
+  };
+
   useEffect(() => {
-    if (showModal) {
+    if (showModal || showRequestModal) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "auto";
     }
-  }, [showModal]);
+  }, [showModal, showRequestModal]);
 
   return (
     <div className="bg-white rounded-xl shadow p-4 sm:p-6  mx-auto mt-4 border border-[#7c87bc]">
@@ -172,8 +187,10 @@ const AboutAgencyTab = () => {
       {activeTab === "affiliated" && (
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-xl font-sf font-semibold ">Affiliated Agencies</h3>
-            <button className="px-3 py-1.5 bg-white border border-black text-black rounded hover:bg-blue-50 transition-colors text-sm font-medium">
+            <h3 className="text-xl font-sf font-semibold ">
+              Affiliated Agencies
+            </h3>
+            <button onClick={handleOpenRequestModal} className="px-3 py-1.5 bg-white border border-black text-black rounded hover:bg-blue-50 transition-colors text-sm font-medium">
               Request Agencies
             </button>
           </div>
@@ -189,7 +206,14 @@ const AboutAgencyTab = () => {
       )}
       {activeTab === "invitations" && (
         <div>
-          <h3 className="text-xl font-semibold mb-3 font-sf">Agencies Invitations</h3>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-xl font-semibold mb-3 font-sf">
+              Agencies Invitations
+            </h3>
+            <button onClick={handleOpenRequestModal} className="px-3 py-1.5 bg-white border border-black text-black rounded hover:bg-blue-50 transition-colors text-sm font-medium">
+              Request Agencies
+            </button>
+          </div>
           {agencyInvitations.map((agency) => (
             <AgencyCard
               key={agency.id}
@@ -206,6 +230,12 @@ const AboutAgencyTab = () => {
         onClose={handleCloseModal}
         agency={selectedAgency}
         readable={true}
+      />
+      <RequestAgencyModal
+        open={showRequestModal}
+        onClose={handleCloseRequestModal}
+        agency={null}
+        readable={false}
       />
     </div>
   );

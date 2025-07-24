@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Upload } from "lucide-react";
 
-const AgencyDetailsModal = ({ open, onClose, agency, readable = true }) => {
+const RequestAgencyModal = ({ open, onClose, agency, readable = true }) => {
   if (!open) return null;
 
   // Dummy data for demonstration
@@ -38,6 +38,11 @@ const AgencyDetailsModal = ({ open, onClose, agency, readable = true }) => {
     endDate: "",
     description: "",
   });
+  const [currentlyWorking, setCurrentlyWorking] = useState(false);
+  const [agreementPreview, setAgreementPreview] = useState(null);
+  const [letterPreview, setLetterPreview] = useState(null);
+  const agreementInputRef = useRef();
+  const letterInputRef = useRef();
 
   useEffect(() => {
     if (!readable) {
@@ -55,6 +60,9 @@ const AgencyDetailsModal = ({ open, onClose, agency, readable = true }) => {
         endDate: "",
         description: "",
       });
+      setCurrentlyWorking(false);
+      setAgreementPreview(null);
+      setLetterPreview(null);
     }
   }, [readable, open]);
 
@@ -69,12 +77,48 @@ const AgencyDetailsModal = ({ open, onClose, agency, readable = true }) => {
     setFields((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Handler for checkbox
+  const handleCheckbox = (e) => {
+    setCurrentlyWorking(e.target.checked);
+    if (e.target.checked) {
+      setFields((prev) => ({ ...prev, endDate: "" }));
+    }
+  };
+
+  // Handler for agreement file upload
+  const handleAgreementUpload = (e) => {
+    const file = e.target.files[0];
+    if (file && file.type.startsWith("image/")) {
+      const url = URL.createObjectURL(file);
+      setAgreementPreview(url);
+    }
+  };
+  const handleAgreementAreaClick = () => {
+    if (!readable && agreementInputRef.current) {
+      agreementInputRef.current.click();
+    }
+  };
+
+  // Handler for letter file upload
+  const handleLetterUpload = (e) => {
+    const file = e.target.files[0];
+    if (file && file.type.startsWith("image/")) {
+      const url = URL.createObjectURL(file);
+      setLetterPreview(url);
+    }
+  };
+  const handleLetterAreaClick = () => {
+    if (!readable && letterInputRef.current) {
+      letterInputRef.current.click();
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 backdrop-blur-sm">
       <div className="bg-white rounded-lg hide-scrollbar shadow-lg w-full max-w-lg p-0 relative overflow-y-auto max-h-[95vh] border border-[#7c87bc]">
         {/* Header: Flex row, left heading, right close */}
         <div className="flex items-center justify-between px-6 pt-5 pb-3 border-b border-blue-100">
-          <h2 className="text-xl font-semibold font-sf text-gray-900">View Details</h2>
+          <h2 className="text-xl font-semibold font-sf text-gray-900">Request Agency</h2>
           <button
             className="text-black hover:text-gray-700 ml-2"
             onClick={onClose}
@@ -86,12 +130,12 @@ const AgencyDetailsModal = ({ open, onClose, agency, readable = true }) => {
           </button>
         </div>
         <form className="space-y-4 px-6 py-4">
-          {/* Name */}
+          {/* Company Organization */}
           <div>
-            <label className="block text-sm text-gray-500 mb-1 font-sf">Name / Company Organization</label>
+            <label className="block text-sm text-gray-500 mb-1 font-sf">Company Organization</label>
             <input
               name="name"
-              value={readable ? data.name : fields.name}
+              value={fields.name}
               readOnly={readable}
               className={`${inputClass} ${inputReadOnlyClass}`}
               onChange={!readable ? handleChange : undefined}
@@ -102,7 +146,7 @@ const AgencyDetailsModal = ({ open, onClose, agency, readable = true }) => {
             <label className="block text-sm text-gray-500 mb-1 font-sf">Email</label>
             <input
               name="email"
-              value={readable ? data.email : fields.email}
+              value={fields.email}
               readOnly={readable}
               className={`${inputClass} ${inputReadOnlyClass}`}
               onChange={!readable ? handleChange : undefined}
@@ -114,7 +158,7 @@ const AgencyDetailsModal = ({ open, onClose, agency, readable = true }) => {
               <label className="block text-sm text-gray-500 mb-1 font-sf">City</label>
               <input
                 name="city"
-                value={readable ? data.city : fields.city}
+                value={fields.city}
                 readOnly={readable}
                 className={`${inputClass} ${inputReadOnlyClass}`}
                 onChange={!readable ? handleChange : undefined}
@@ -124,20 +168,20 @@ const AgencyDetailsModal = ({ open, onClose, agency, readable = true }) => {
               <label className="block text-sm text-gray-500 mb-1 font-sf">Country</label>
               <input
                 name="country"
-                value={readable ? data.country : fields.country}
+                value={fields.country}
                 readOnly={readable}
                 className={`${inputClass} ${inputReadOnlyClass}`}
                 onChange={!readable ? handleChange : undefined}
               />
             </div>
           </div>
-          {/* Province / District */}
+          {/* Governate / District */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm text-gray-500 mb-1 font-sf">Governate</label>
               <input
                 name="province"
-                value={readable ? data.province : fields.province}
+                value={fields.province}
                 readOnly={readable}
                 className={`${inputClass} ${inputReadOnlyClass}`}
                 onChange={!readable ? handleChange : undefined}
@@ -147,7 +191,7 @@ const AgencyDetailsModal = ({ open, onClose, agency, readable = true }) => {
               <label className="block text-sm text-gray-500 mb-1 font-sf">District</label>
               <input
                 name="district"
-                value={readable ? data.district : fields.district}
+                value={fields.district}
                 readOnly={readable}
                 className={`${inputClass} ${inputReadOnlyClass}`}
                 onChange={!readable ? handleChange : undefined}
@@ -159,7 +203,7 @@ const AgencyDetailsModal = ({ open, onClose, agency, readable = true }) => {
             <label className="block text-sm text-gray-500 mb-1 font-sf">Product Name</label>
             <input
               name="product"
-              value={readable ? data.product : fields.product}
+              value={fields.product}
               readOnly={readable}
               className={`${inputClass} ${inputReadOnlyClass}`}
               onChange={!readable ? handleChange : undefined}
@@ -171,17 +215,17 @@ const AgencyDetailsModal = ({ open, onClose, agency, readable = true }) => {
               <label className="block text-sm text-gray-500 mb-1 font-sf">Main Category</label>
               <input
                 name="mainCategory"
-                value={readable ? data.mainCategory : fields.mainCategory}
+                value={fields.mainCategory}
                 readOnly={readable}
                 className={`${inputClass} ${inputReadOnlyClass}`}
                 onChange={!readable ? handleChange : undefined}
               />
             </div>
             <div>
-              <label className="block text-sm text-gray-500 mb-1 font-sf">Sub-Category</label>
+              <label className="block text-sm text-gray-500 mb-1 font-sf">Sub Category</label>
               <input
                 name="subCategory"
-                value={readable ? data.subCategory : fields.subCategory}
+                value={fields.subCategory}
                 readOnly={readable}
                 className={`${inputClass} ${inputReadOnlyClass}`}
                 onChange={!readable ? handleChange : undefined}
@@ -193,121 +237,144 @@ const AgencyDetailsModal = ({ open, onClose, agency, readable = true }) => {
             <label className="block text-sm text-gray-500 mb-1 font-sf">Start Date</label>
             <input
               name="startDate"
-              value={readable ? data.startDate : fields.startDate}
+              value={fields.startDate}
               readOnly={readable}
               className={`${inputClass} ${inputReadOnlyClass}`}
               onChange={!readable ? handleChange : undefined}
             />
           </div>
-          {/* End Date */}
-          <div>
-            <label className="block text-sm text-gray-500 mb-1 font-sf">End Date</label>
+          {/* End Date (conditionally rendered) */}
+          {!currentlyWorking && (
+            <div>
+              <label className="block text-sm text-gray-500 mb-1 font-sf">End Date</label>
+              <input
+                name="endDate"
+                value={fields.endDate}
+                readOnly={readable}
+                className={`${inputClass} ${inputReadOnlyClass}`}
+                onChange={!readable ? handleChange : undefined}
+              />
+            </div>
+          )}
+          {/* Currently Working Checkbox */}
+          <div className="flex items-center gap-2">
             <input
-              name="endDate"
-              value={readable ? data.endDate : fields.endDate}
-              readOnly={readable}
-              className={`${inputClass} ${inputReadOnlyClass}`}
-              onChange={!readable ? handleChange : undefined}
+              type="checkbox"
+              id="currentlyWorking"
+              checked={currentlyWorking}
+              onChange={handleCheckbox}
+              className="w-7 h-7 font-sf bg-gray-100 border-gray-300 rounded "
+              style={{ accentColor: "#8bc53d" }}
+              disabled={readable}
             />
+            <label htmlFor="currentlyWorking" className="text-sm text-gray-700 font-sf select-none">
+              Currently Working
+            </label>
           </div>
           {/* Product Description */}
           <div>
             <label className="block text-sm text-gray-500 mb-1 font-sf">Product Description</label>
             <textarea
               name="description"
-              value={readable ? data.description : fields.description}
+              value={fields.description}
               readOnly={readable}
               className={`${inputClass} ${inputReadOnlyClass} min-h-[60px] resize-none`}
               onChange={!readable ? handleChange : undefined}
             />
           </div>
-          {/* View Agreement */}
+          {/* Attach Agreement */}
           <div>
-            <label className="block text-sm text-gray-500 mb-1 font-sf">View Agreement</label>
-            <div className="relative w-full">
-              <div className="relative rounded overflow-hidden w-full" style={{ background: "#222" }}>
-                <img
-                  src={data.agreementImg}
-                  alt="Agreement"
-                  className="w-full h-24 object-cover opacity-60"
-                  style={{ display: "block" }}
-                />
-                <button
-                  type="button"
-                  className="absolute inset-0 flex items-center justify-center w-full h-full text-white font-semibold text-base font-sf bg-black bg-opacity-30 hover:bg-opacity-50 transition"
-                  style={{ pointerEvents: "auto" }}
-                >
-                  View Agreement
-                </button>
-              </div>
+            <label className="block text-sm text-gray-500 mb-1 font-sf">Attach Agreement</label>
+            <div
+              className="border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center py-4 mb-2 cursor-pointer relative overflow-hidden group"
+              onClick={handleAgreementAreaClick}
+              style={{ minHeight: "112px" }}
+            >
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                ref={agreementInputRef}
+                onChange={handleAgreementUpload}
+                disabled={readable}
+              />
+              {agreementPreview ? (
+                <div className="absolute inset-0 w-full h-full">
+                  <img
+                    src={agreementPreview}
+                    alt="Agreement Preview"
+                    className="w-full h-full object-cover"
+                    style={{ borderRadius: "0.5rem" }}
+                  />
+                  <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center">
+                    <span className="text-white text-xl font-semibold font-sf">View Agreement</span>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <Upload className="w-6 h-6 text-gray-400 mb-1 z-10" />
+                  <span className="text-gray-600 text-sm font-sf z-10">Upload Agreement</span>
+                </>
+              )}
             </div>
           </div>
-          {/* View Confirmation Letter */}
+          {/* Attach Agent's Commercial Registration */}
           <div>
-            <label className="block text-sm text-gray-500 mb-1 font-sf">View Confirmation Letter</label>
-            <div className="relative w-full">
-              <div className="relative rounded overflow-hidden w-full" style={{ background: "#222" }}>
-                <img
-                  src={data.confirmationImg}
-                  alt="Confirmation"
-                  className="w-full h-24 object-cover opacity-60"
-                  style={{ display: "block" }}
-                />
-                <button
-                  type="button"
-                  className="absolute inset-0 flex items-center justify-center w-full h-full text-white font-semibold text-base font-sf bg-black bg-opacity-30 hover:bg-opacity-50 transition"
-                  style={{ pointerEvents: "auto" }}
-                >
-                  View Letter
-                </button>
-              </div>
+            <label className="block text-sm text-gray-500 mb-1 font-sf">Attach Agent's Commercial Registration</label>
+            <div
+              className="border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center py-4 mb-2 cursor-pointer relative overflow-hidden group"
+              onClick={handleLetterAreaClick}
+              style={{ minHeight: "112px" }}
+            >
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                ref={letterInputRef}
+                onChange={handleLetterUpload}
+                disabled={readable}
+              />
+              {letterPreview ? (
+                <div className="absolute inset-0 w-full h-full">
+                  <img
+                    src={letterPreview}
+                    alt="Letter Preview"
+                    className="w-full h-full object-cover"
+                    style={{ borderRadius: "0.5rem" }}
+                  />
+                  <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center">
+                    <span className="text-white text-xl font-semibold font-sf">View Letter</span>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <Upload className="w-6 h-6 text-gray-400 mb-1 z-10" />
+                  <span className="text-gray-600 text-sm font-sf z-10">Upload Letter</span>
+                </>
+              )}
             </div>
           </div>
-          {/* Confirm iOS-style Buttons */}
-          <div className="flex items-center mt-2 ">
-            <label className="text-sm text-gray-700 font-sf mr-3">I confirm this data is correct.</label>
+          {/* Buttons */}
+          <div className="flex gap-3 mt-4">
             <button
               type="button"
-              className="flex items-center justify-center w-8 h-8 rounded-md bg-red-500 hover:bg-red-600 transition-colors ml-1"
-              style={{
-                boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
-              }}
-              tabIndex={-1}
+              className="w-40 bg-[#0214b5] hover:bg-[#000f82] text-white font-medium py-2 rounded text-sm transition-colors font-sf"
               disabled={readable}
             >
-              <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-                <rect width="22" height="22" rx="5" fill="#FF3B30"/>
-                <path d="M7 7L15 15" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-                <path d="M15 7L7 15" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-              </svg>
+              Send Request
             </button>
             <button
               type="button"
-              className="flex items-center justify-center w-8 h-8 rounded-md bg-green-500 hover:bg-green-600 transition-colors ml-2"
-              style={{
-                boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
-              }}
-              tabIndex={-1}
-              disabled={readable}
+              className="w-40 border-black border bg-gray-50 hover:bg-gray-100 text-gray-800 font-medium py-2 rounded text-sm transition-colors font-sf"
+              onClick={onClose}
             >
-              <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-                <rect width="22" height="22" rx="5" fill="#34C759"/>
-                <path d="M6 12.5L10 16L16 8" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+              Remove Request
             </button>
           </div>
-          <button
-            type="button"
-            className="w-48 mt-5 bg-[#0214b5] cursor-pointer hover:bg-[#000f82] text-white font-medium py-2 rounded text-sm transition-colors font-sf flex items-center justify-center gap-2"
-            disabled={readable}
-          >
-            <Upload className="w-5 h-5" />
-            <span className="font-sf">Upload Agreement</span>
-          </button>
         </form>
       </div>
     </div>
   );
 };
 
-export default AgencyDetailsModal;
+export default RequestAgencyModal;

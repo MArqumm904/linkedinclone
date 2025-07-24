@@ -1,5 +1,19 @@
-import { useState, useEffect } from "react";
-import { Settings, Edit3, MoreHorizontal, MapPin } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import {
+  Settings,
+  Edit3,
+  MoreHorizontal,
+  MapPin,
+  Gem,
+  Key,
+  Globe,
+  Bell,
+  Ban,
+  HelpCircle,
+  Power,
+  LogOut,
+  Lock,
+} from "lucide-react";
 import NavbarReplica from "../components/nav";
 import Person1 from "../assets/images/person-1.png";
 import PostTab from "../components/profilecomponents/post_tab";
@@ -11,6 +25,16 @@ import AboutTab from "../components/profilecomponents/about_tab";
 import MediaTabPhotos from "../components/profilecomponents/media_tab_photos";
 import AboutFriendsTab from "../components/profilecomponents/about_friends_tab";
 import AboutAgencyTab from "../components/profilecomponents/about_agency_tab";
+import Badges from "../components/profilecomponents/badges";
+import BadgesTab from "../components/profilecomponents/badges_tab";
+import VerifiedMembershipsTab from "../components/profilecomponents/verified_memberships_tab";
+import AccountKeySettings from "../components/profilecomponents/account_key_settings";
+import PrivacySettings from "../components/profilecomponents/privacy_settings";
+import LanguageSettings from "../components/profilecomponents/select_language";
+import ManageNotification from "../components/profilecomponents/manage_notification";
+import BlockedUser from "../components/profilecomponents/blocked_user";
+import DeactivateAccount from "../components/profilecomponents/deactivate_account";
+import HelpCenter from "../components/profilecomponents/help_center";
 
 const Profile = () => {
   const textPosts = [
@@ -66,6 +90,15 @@ const Profile = () => {
   const [showeditprofilePopup, setShoweditprofilePopup] = useState(false);
   const [showeditintroPopup, setShoweditintroPopup] = useState(false);
   const [showreqmemPopup, setShowreqmemPopup] = useState(false);
+  const [showBadgesModal, setShowBadgesModal] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [showAccountKeySettings, setShowAccountKeySettings] = useState(false);
+  const [showPrivacySettings, setShowPrivacySettings] = useState(false);
+  const [showLanguageSettings, setShowLanguageSettings] = useState(false);
+  const [showManageNotification, setShowManageNotification] = useState(false);
+  const [showBlockedUser, setShowBlockedUser] = useState(false);
+  const [showDeactivateAccount, setShowDeactivateAccount] = useState(false);
+  const [showHelpCenter, setShowHelpCenter] = useState(false);
   const number_of_text_posts = textPosts.length;
   const number_of_image_posts = imagePosts.length;
   const number_of_video_posts = videoPosts.length;
@@ -127,12 +160,22 @@ const Profile = () => {
   const totalPosts =
     number_of_text_posts + number_of_image_posts + number_of_video_posts;
 
+  const iconRef = useRef(null);
+  const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
+
   useEffect(() => {
     if (
       showeditcoverPopup ||
       showeditprofilePopup ||
       showeditintroPopup ||
-      showreqmemPopup
+      showreqmemPopup ||
+      showAccountKeySettings ||
+      showPrivacySettings ||
+      showLanguageSettings ||
+      showManageNotification ||
+      showBlockedUser ||
+      showDeactivateAccount ||
+      showHelpCenter
     ) {
       document.body.style.overflow = "hidden";
     } else {
@@ -143,7 +186,45 @@ const Profile = () => {
     showeditprofilePopup,
     showeditintroPopup,
     showreqmemPopup,
+    showAccountKeySettings,
+    showPrivacySettings,
+    showLanguageSettings,
+    showManageNotification,
+    showBlockedUser,
+    showDeactivateAccount,
+    showHelpCenter,
   ]);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (
+        !event.target.closest(".profile-dropdown-menu") &&
+        !event.target.closest(".profile-dropdown-toggle")
+      ) {
+        setShowDropdown(false);
+      }
+    }
+    if (showDropdown) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showDropdown]);
+
+  const handleDropdownToggle = () => {
+    if (!showDropdown && iconRef.current) {
+      const rect = iconRef.current.getBoundingClientRect();
+      setDropdownPos({
+        top: rect.bottom + window.scrollY + 4,
+        left: rect.right - 256, 
+      });
+    }
+    setShowDropdown((prev) => !prev);
+  };
+
   return (
     <>
       {showeditcoverPopup && (
@@ -157,6 +238,28 @@ const Profile = () => {
       )}
       {showreqmemPopup && (
         <ReqMembership onClose={() => setShowreqmemPopup(false)} />
+      )}
+      {showBadgesModal && <Badges onClose={() => setShowBadgesModal(false)} />}
+      {showAccountKeySettings && (
+        <AccountKeySettings onClose={() => setShowAccountKeySettings(false)} />
+      )}
+      {showPrivacySettings && (
+        <PrivacySettings onClose={() => setShowPrivacySettings(false)} />
+      )}
+      {showLanguageSettings && (
+        <LanguageSettings onClose={() => setShowLanguageSettings(false)} />
+      )}
+      {showManageNotification && (
+        <ManageNotification onClose={() => setShowManageNotification(false)} />
+      )}
+      {showBlockedUser && (
+        <BlockedUser onClose={() => setShowBlockedUser(false)} />
+      )}
+      {showDeactivateAccount && (
+        <DeactivateAccount onClose={() => setShowDeactivateAccount(false)} />
+      )}
+      {showHelpCenter && (
+        <HelpCenter onClose={() => setShowHelpCenter(false)} />
       )}
       <NavbarReplica />
       <div className="min-h-screen bg-gray-100">
@@ -210,9 +313,21 @@ const Profile = () => {
                     </button>
 
                     {/* Name and Title */}
-                    <h1 className="text-3xl font-bold font-sf text-gray-900 mb-2">
-                      The Ransom
-                    </h1>
+                    <div className="flex items-center gap-4 mb-2">
+                      <span className="text-3xl font-bold text-black font-sf">
+                        The Ransom
+                      </span>
+                      <button
+                        className="flex items-center bg-[#bbf1fc] rounded-full px-4 py-1 focus:outline-none"
+                        onClick={() => setShowBadgesModal(true)}
+                        style={{ cursor: "pointer" }}
+                      >
+                        <Gem className="w-5 h-5 text-[#1797a6] mr-2" />
+                        <span className="text-[#1797a6] font-medium text-base">
+                          Verified Memberships
+                        </span>
+                      </button>
+                    </div>
 
                     <div className="flex items-center text-[#636363] mb-2">
                       <Settings className="w-5 h-5 mr-2" />
@@ -332,15 +447,94 @@ const Profile = () => {
                         </button>
                       ))}
                     </div>
-                    <button className="text-gray-400 hover:text-gray-600 transition-colors">
-                      <MoreHorizontal className="w-5 h-5 mb-5" />
-                    </button>
+                    <div className="relative mb-3">
+                      <button
+                        className="profile-dropdown-toggle text-black hover:text-gray-600 transition-colors"
+                        onClick={handleDropdownToggle}
+                        type="button"
+                        ref={iconRef}
+                      >
+                        <MoreHorizontal className="w-5 h-5" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-
+          {showDropdown && (
+            <div className="profile-dropdown-menu absolute right-24  -mt-8 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-40 py-2">
+              <button
+                className="flex items-center w-full px-4 py-2 text-black hover:bg-gray-100"
+                onClick={() => {
+                  setShowAccountKeySettings(true);
+                  setShowDropdown(false);
+                }}
+              >
+                <Key className="w-5 h-5 mr-3" /> Account Key Settings
+              </button>
+              <button
+                className="flex items-center w-full px-4 py-2 text-black hover:bg-gray-100"
+                onClick={() => {
+                  setShowPrivacySettings(true);
+                  setShowDropdown(false);
+                }}
+              >
+                <Lock className="w-5 h-5 mr-3" /> Privacy Setting
+              </button>
+              <button
+                className="flex items-center w-full px-4 py-2 text-black hover:bg-gray-100"
+                onClick={() => {
+                  setShowLanguageSettings(true);
+                  setShowDropdown(false);
+                }}
+              >
+                <Globe className="w-5 h-5 mr-3" /> Language
+              </button>
+              <button
+                className="flex items-center w-full px-4 py-2 text-black hover:bg-gray-100"
+                onClick={() => {
+                  setShowManageNotification(true);
+                  setShowDropdown(false);
+                }}
+              >
+                <Bell className="w-5 h-5 mr-3" /> Manage Notification
+              </button>
+              <button
+                className="flex items-center w-full px-4 py-2 text-black hover:bg-gray-100"
+                onClick={() => {
+                  setShowBlockedUser(true);
+                  setShowDropdown(false);
+                }}
+              >
+                <Ban className="w-5 h-5 mr-3" /> Blocked
+              </button>
+              <button
+                className="flex items-center w-full px-4 py-2 text-black hover:bg-gray-100"
+                onClick={() => {
+                  setShowHelpCenter(true);
+                  setShowDropdown(false);
+                }}
+              >
+                <HelpCircle className="w-5 h-5 mr-3" /> Help Center
+              </button>
+              <button
+                className="flex items-center w-full px-4 py-2 text-red-600 hover:bg-gray-100"
+                onClick={() => {
+                  setShowDeactivateAccount(true);
+                  setShowDropdown(false);
+                }}
+              >
+                <Power className="w-5 h-5 mr-3" /> Deactivate Account
+              </button>
+              <button
+                className="flex items-center w-full px-4 py-2 text-black hover:bg-gray-100"
+                onClick={() => setShowDropdown(false)}
+              >
+                <LogOut className="w-5 h-5 mr-3" /> Log Out
+              </button>
+            </div>
+          )}
           {/* Tab Content */}
           {(activeTab === "Posts" || activeTab === "My Work") && (
             <PostTab
@@ -356,6 +550,8 @@ const Profile = () => {
           {activeTab === "Media" && <MediaTabPhotos />}
           {activeTab === "Friends" && <AboutFriendsTab />}
           {activeTab === "My Agencies" && <AboutAgencyTab />}
+          {activeTab === "My Badges" && <BadgesTab />}
+          {activeTab === "Verified Memberships" && <VerifiedMembershipsTab />}
         </div>
       </div>
     </>
