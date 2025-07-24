@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Camera, User } from "lucide-react";
 
-const RegisterSecondStep = () => {
+const RegisterSecondStep = ({ onComplete, successMessage, errorMessage }) => {
   const [formData, setFormData] = useState({
     skill: "",
     day: "18",
@@ -21,8 +21,16 @@ const RegisterSecondStep = () => {
   };
 
   const handleSubmit = () => {
-    console.log("Form submitted:", formData);
-    // Yahan aap API call kar sakte hain
+    const monthIndex = months.indexOf(formData.month) + 1;
+    const dob = `${formData.year}-${monthIndex
+      .toString()
+      .padStart(2, "0")}-${formData.day.toString().padStart(2, "0")}`;
+    const dataToSend = {
+      skills: formData.skill ? [formData.skill] : [],
+      dob,
+      location: formData.location,
+    };
+    if (onComplete) onComplete(dataToSend);
   };
 
   const days = Array.from({ length: 31 }, (_, i) => i + 1);
@@ -45,6 +53,86 @@ const RegisterSecondStep = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-0 px-4 sm:px-6 lg:px-8">
+      {/* Success Popup Modal */}
+      {/* Modal */}
+      {(successMessage || errorMessage) && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 px-4">
+          <div className="absolute inset-0 bg-black/30 backdrop-blur-sm"></div>
+
+          <div
+            className={`relative bg-white rounded-xl shadow-xl px-8 py-8 flex flex-col items-center max-w-sm w-full border-l-4 ${
+              successMessage ? "border-[#0017e7]" : "border-red-500"
+            }`}
+          >
+            {successMessage ? (
+              <>
+                <div className="w-16 h-16 bg-[#0017e7] rounded-full flex items-center justify-center mb-4">
+                  <svg
+                    className="w-8 h-8 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                  Success!
+                </h3>
+                <p className="text-[#0017e7] text-center mb-4">
+                  {successMessage}
+                </p>
+                <div className="flex items-center text-gray-500 text-sm">
+                  <svg
+                    className="w-4 h-4 mr-2 animate-spin"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                    />
+                  </svg>
+                  Redirecting to login...
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center mb-4">
+                  <svg
+                    className="w-8 h-8 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                  Error
+                </h3>
+                <p className="text-red-600 text-center mb-4">{errorMessage}</p>
+                <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors">
+                  Try Again
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
         <div className="text-center">
