@@ -35,6 +35,8 @@ import ManageNotification from "../components/profilecomponents/manage_notificat
 import BlockedUser from "../components/profilecomponents/blocked_user";
 import DeactivateAccount from "../components/profilecomponents/deactivate_account";
 import HelpCenter from "../components/profilecomponents/help_center";
+import axios from "axios";
+import Preloader from "../components/preloader/Preloader";
 
 const Profile = () => {
   const textPosts = [
@@ -162,6 +164,16 @@ const Profile = () => {
 
   const iconRef = useRef(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
+  const [userProfile, setUserProfile] = useState(null);
+
+  useEffect(() => {
+    const userId = localStorage.getItem("user_id");
+    if (!userId) return;
+    fetch(`${import.meta.env.VITE_API_BASE_URL}/user/profile/${userId}`)
+      .then((res) => res.json())
+      .then((data) => setUserProfile(data.user))
+      .catch(() => setUserProfile(null));
+  }, []);
 
   useEffect(() => {
     if (
@@ -219,13 +231,19 @@ const Profile = () => {
       const rect = iconRef.current.getBoundingClientRect();
       setDropdownPos({
         top: rect.bottom + window.scrollY + 4,
-        left: rect.right - 256, 
+        left: rect.right - 256,
       });
     }
     setShowDropdown((prev) => !prev);
   };
 
+  // Loader logic: show Preloader until userProfile is loaded (or failed)
+  if (userProfile === null) {
+    return <Preloader />;
+  }
+
   return (
+    
     <>
       {showeditcoverPopup && (
         <EditCover onClose={() => setShoweditcoverPopup(false)} />
@@ -289,7 +307,7 @@ const Profile = () => {
                   <div className="relative -mt-16 mb-4">
                     <div className="w-32 h-32 rounded-full border-4 border-white bg-white overflow-hidden">
                       <img
-                        src={Person1}
+                        src={userProfile && userProfile.profile && userProfile.profile.profile_photo ? userProfile.profile.profile_photo : Person1}
                         alt="Profile"
                         className="w-full h-full object-cover"
                       />
@@ -315,7 +333,7 @@ const Profile = () => {
                     {/* Name and Title */}
                     <div className="flex items-center gap-4 mb-2">
                       <span className="text-3xl font-bold text-black font-sf">
-                        The Ransom
+                        {userProfile ? userProfile.name : "Loading..."}
                       </span>
                       <button
                         className="flex items-center bg-[#bbf1fc] rounded-full px-4 py-1 focus:outline-none"
@@ -335,7 +353,9 @@ const Profile = () => {
 
                       <div className="flex items-center text-gray-600 ms-5">
                         <MapPin className="w-5 h-5 mr-2" />
-                        <span className="text-lg">Karachi, Pakistan</span>
+                        <span className="text-lg">
+                          {userProfile  && userProfile.profile.location }
+                        </span>
                       </div>
                     </div>
                   </div>

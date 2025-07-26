@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import logo from "../assets/images/logo.jpg";
 import RegisterSecondStep from "./register_second_step";
+import axios from "axios";
 
 const benefits = [
   { icon: Users, text: "Connect with professionals" },
@@ -41,6 +42,7 @@ const MainLogin = () => {
   const [loading, setLoading] = useState(false);
   const [apiError, setApiError] = useState("");
   const [success, setSuccess] = useState("");
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -81,29 +83,22 @@ const MainLogin = () => {
       location: secondStepData.location,
     };
     try {
-      const res = await fetch("http://127.0.0.1:8000/api/signup", {
-        method: "POST",
+      const res = await axios.post(`${API_BASE_URL}/signup`, payload, {
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
       });
-      const data = await res.json();
-      if (res.ok) {
-        setSuccess(data.message);
-        setFormData({
-          fullName: "",
-          contactOrEmail: "",
-          password: "",
-        });
-        setTimeout(() => {
-          navigate("/login");
-        }, 2000);
-      } else {
-        setApiError(data.error || "Registration failed!");
-        setStep(1);
-        setTimeout(() => setApiError(""), 3000);
-      }
-    } catch {
-      setApiError("Registration failed! Server error.");
+      const data = res.data;
+      setSuccess(data.message);
+      setFormData({
+        fullName: "",
+        contactOrEmail: "",
+        password: "",
+      });
+      setTimeout(() => {
+        navigate("/login");
+      }, 2000);
+    } catch (error) {
+      const data = error.response?.data;
+      setApiError((data && data.error) || "Registration failed!");
       setStep(1);
       setTimeout(() => setApiError(""), 3000);
     } finally {
@@ -151,9 +146,7 @@ const MainLogin = () => {
                 className="flex items-center gap-3 text-[#222] p-3 rounded-xl bg-white/50 backdrop-blur-sm border border-[#d6dbe1]/50 hover:bg-white/70 transition-all duration-300 hover:shadow-md"
               >
                 <div className="w-2 h-2 bg-[#0017e7] rounded-full flex-shrink-0"></div>
-                <span className="text-[15px] font-medium">
-                  {benefit.text}
-                </span>
+                <span className="text-[15px] font-medium">{benefit.text}</span>
               </div>
             ))}
           </div>
@@ -177,14 +170,19 @@ const MainLogin = () => {
             <h2 className="text-xl font-bold text-[#0017e7]">Join Ahmeed</h2>
           </div>
           {/* Register Title */}
-          <div className="flex flex-col items-center mb-4">
+          <div className="flex flex-col items-center ">
+            <div className="relative group cursor-pointer">
+              <div className="w-14 h-14 rounded-full bg-[#e6eaff] border-4 border-[#0017e7] flex items-center justify-center shadow group-hover:shadow-lg transition-all duration-300">
+                <User className="w-6 h-6 text-[#0017e7]" />
+              </div>
+            </div>
             <span className="text-[#888] text-[12px] mt-1 font-medium">
               <span className="text-[#4bb547]">Ahmeed</span> User
             </span>
-            <h1 className="text-2xl font-semibold text-gray-900 text-center mb-1 mt-4">
-              Register Your Account
-            </h1>
           </div>
+          <h1 className="text-2xl font-semibold text-gray-900 text-center mb-4 mt-4 ">
+            Register Your Account
+          </h1>
           <div className="space-y-3">
             {/* Full Name Field */}
             <div className="relative">

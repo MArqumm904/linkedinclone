@@ -10,26 +10,24 @@ import Groups from "./pages/groups";
 import Pages from "./pages/pages";
 import Browse from "./pages/browse";
 import Profile from "./pages/profile";
-import RouteLoader from "./components/preloader/RouteLoader"; 
+import CheckLoginOrNot from "./pages/CheckLoginOrNot";
 import "./App.css";
 
 function App() {
   return (
     <Router>
-      <RouteLoader>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/friends" element={<Friends />} />
-          <Route path="/notifications" element={<Notifications />} />
-          <Route path="/saved" element={<Saved />} />
-          <Route path="/groups" element={<Groups />} />
-          <Route path="/pages" element={<Pages />} />
-          <Route path="/browse" element={<Browse />} />
-          <Route path="/profile" element={<Profile />} />
-        </Routes>
-      </RouteLoader>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/" element={<CheckLoginOrNot><Home /></CheckLoginOrNot>} />
+        <Route path="/friends" element={<CheckLoginOrNot><Friends /></CheckLoginOrNot>} />
+        <Route path="/notifications" element={<CheckLoginOrNot><Notifications /></CheckLoginOrNot>} />
+        <Route path="/saved" element={<CheckLoginOrNot><Saved /></CheckLoginOrNot>} />
+        <Route path="/groups" element={<CheckLoginOrNot><Groups /></CheckLoginOrNot>} />
+        <Route path="/pages" element={<CheckLoginOrNot><Pages /></CheckLoginOrNot>} />
+        <Route path="/browse" element={<CheckLoginOrNot><Browse /></CheckLoginOrNot>} />
+        <Route path="/profile" element={<CheckLoginOrNot><Profile /></CheckLoginOrNot>} />
+      </Routes>
     </Router>
   );
 }

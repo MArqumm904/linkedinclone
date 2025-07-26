@@ -6,8 +6,15 @@ import {
   MessageCircle,
   Briefcase,
   Camera,
+  Eye,
+  EyeOff,
+  Mail,
+  Lock,
 } from "lucide-react";
+
 import logo from "../assets/images/logo.jpg";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const benefits = [
   { icon: Users, text: "Connect with professionals" },
@@ -39,6 +46,12 @@ const LoginAccount = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loginSuccess, setLoginSuccess] = useState("");
+  const [loginError, setLoginError] = useState("");
+  const [loginLoading, setLoginLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [focusedField, setFocusedField] = useState("");
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setFormData({
@@ -47,8 +60,56 @@ const LoginAccount = () => {
     });
   };
 
-  const handleLogin = () => {
-    console.log("Login clicked:", formData);
+  const handleLogin = async () => {
+    setLoginLoading(true);
+    setLoginError("");
+    setLoginSuccess("");
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+    const isEmail = formData.emailOrUsername.includes("@");
+    const payload = {
+      password: formData.password,
+      ...(isEmail
+        ? { email: formData.emailOrUsername }
+        : { phone: formData.emailOrUsername }),
+    };
+    try {
+      const res = await axios.post(`${API_BASE_URL}/login`, payload, {
+        headers: { "Content-Type": "application/json" },
+      });
+      const data = res.data;
+      console.log(res.status, data);
+
+      if (res.status >= 200 && res.status < 300) {
+        if (data.token) {
+          localStorage.setItem("token", data.token);
+        }
+        if (data.user) {
+          if (data.user.name) {
+            localStorage.setItem("user_name", data.user.name);
+          }
+          if (data.user.email) {
+            localStorage.setItem("user_email", data.user.email);
+          }
+          if (data.user.id) {
+            localStorage.setItem("user_id", data.user.id);
+          }
+        }
+        setLoginSuccess(data.message);
+        setTimeout(() => {
+          navigate("/");
+        }, 2000);
+      } else {
+        setLoginError(data.error || "Login failed!");
+      }
+    } catch (e) {
+      if (e.response && e.response.data && e.response.data.error) {
+        setLoginError(e.response.data.error);
+      } else {
+        setLoginError("Login failed! Server error.");
+      }
+    } finally {
+      setLoginLoading(false);
+    }
   };
 
   const handleGoogleLogin = () => {
@@ -141,6 +202,89 @@ const LoginAccount = () => {
 
   return (
     <div className="min-h-screen bg-[#fafbfc] flex items-center justify-center p-4 overflow-x-hidden">
+      {/* Login Success/Error Modal */}
+      {(loginSuccess || loginError) && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 px-4">
+          <div className="absolute inset-0 bg-black/30 backdrop-blur-sm"></div>
+          <div
+            className={`relative bg-white rounded-xl shadow-xl px-8 py-8 flex flex-col items-center max-w-sm w-full border-l-4 ${
+              loginSuccess ? "border-[#0017e7]" : "border-red-500"
+            }`}
+          >
+            {loginSuccess ? (
+              <>
+                <div className="w-16 h-16 bg-[#0017e7] rounded-full flex items-center justify-center mb-4">
+                  <svg
+                    className="w-8 h-8 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-3xl font-semibold text-gray-800 mb-2">
+                  {loginSuccess}
+                </h3>
+                <p className="text-[#0017e7] text-center mb-4">
+                  Welcome Back to <span className="text-[#4bb547]">Ahmeed</span>
+                </p>
+                <div className="flex items-center text-gray-500 text-sm">
+                  <svg
+                    className="w-4 h-4 mr-2 animate-spin"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                    />
+                  </svg>
+                  Redirecting to home...
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center mb-4">
+                  <svg
+                    className="w-8 h-8 text-white"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-3xl font-semibold text-black mb-2">
+                  {loginError}
+                </h3>
+                <p className="text-red-600 text-center mb-4">
+                  Try to Enter Correct Email or Phone Number and Password
+                </p>
+                <button
+                  onClick={() => setLoginError("")}
+                  className="bg-[#0019e9] hover:bg-[#0014b2] text-white px-6 py-2 rounded-full font-medium transition-colors"
+                >
+                  Try Again
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
       <div className="bg-white rounded-[20px] shadow-2xl border border-[#d6dbe1] flex w-full max-w-5xl max-h-[700px] overflow-hidden relative overflow-y-auto">
         {/* Subtle decorative elements */}
         <div className="absolute top-0 left-0 w-20 h-20 bg-[#0017e7]/5 rounded-full blur-2xl"></div>
@@ -206,9 +350,7 @@ const LoginAccount = () => {
             <div className="relative group cursor-pointer">
               <div className="w-14 h-14 rounded-full bg-[#e6eaff] border-4 border-[#0017e7] flex items-center justify-center shadow group-hover:shadow-lg transition-all duration-300">
                 <User className="w-6 h-6 text-[#0017e7]" />
-                <div className="absolute inset-0 rounded-full bg-[#0017e7]/0 group-hover:bg-[#0017e7]/10 transition-colors duration-300 flex items-center justify-center">
-                  <Camera className="w-4 h-4 text-[#0017e7] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                </div>
+                
               </div>
             </div>
             <span className="text-[#888] text-[12px] mt-1 font-medium">
@@ -333,41 +475,81 @@ const LoginAccount = () => {
           ) : !showForgotPassword ? (
             <>
               {/* Email or Username Field */}
-              <div>
+              <div className="relative mb-4">
                 <label
                   htmlFor="emailOrUsername"
-                  className="block text-sm font-medium text-gray-700 mb-2"
+                  className="block text-[14px] font-medium text-[#444] mb-1"
                 >
                   Mobile Number or Email Address
                 </label>
-                <input
-                  type="text"
-                  id="emailOrUsername"
-                  name="emailOrUsername"
-                  value={formData.emailOrUsername}
-                  placeholder="+92 30 01234567 OR ransom.ux@gmail.com"
-                  onChange={handleChange}
-                  className="w-full pl-3 pr-3 py-2 border border-[#d6dbe1] rounded-[6px] focus:outline-none focus:ring-2 focus:ring-[#0017e7] focus:border-transparent text-[14px] bg-white hover:border-[#0017e7]/30 transition-all duration-200"
-                />
+                <div className="relative">
+                  <div
+                    className={`absolute left-3 top-1/2 transform -translate-y-1/2 transition-colors duration-200 ${
+                      focusedField === "emailOrUsername"
+                        ? "text-[#0017e7]"
+                        : "text-[#bbb]"
+                    }`}
+                  >
+                    <Mail className="w-5 h-5" />
+                  </div>
+                  <input
+                    type="text"
+                    id="emailOrUsername"
+                    name="emailOrUsername"
+                    value={formData.emailOrUsername}
+                    placeholder="+92 30 01234567 OR ransom.ux@gmail.com"
+                    onChange={handleChange}
+                    onFocus={() => setFocusedField("emailOrUsername")}
+                    onBlur={() => setFocusedField("")}
+                    className="w-full pl-10 pr-3 py-2 border border-[#d6dbe1] rounded-[6px] focus:outline-none focus:ring-2 focus:ring-[#0017e7] focus:border-transparent text-[14px] bg-white hover:border-[#0017e7]/30 transition-all duration-200 placeholder:text-[#b0b7c3]"
+                    autoComplete="off"
+                  />
+                </div>
               </div>
 
               {/* Password Field */}
-              <div>
+              <div className="relative mt-4">
                 <label
                   htmlFor="password"
-                  className="block text-sm font-medium text-gray-700 mb-2  mt-4"
+                  className="block text-[14px] font-medium text-[#444] mb-1"
                 >
                   Password
                 </label>
-                <input
-                  type="password"
-                  id="password"
-                  name="password"
-                  placeholder="**************"
-                  value={formData.password}
-                  onChange={handleChange}
-                  className="w-full pl-3 pr-3 py-2 border border-[#d6dbe1] rounded-[6px] focus:outline-none focus:ring-2 focus:ring-[#0017e7] focus:border-transparent text-[14px] bg-white hover:border-[#0017e7]/30 transition-all duration-200"
-                />
+                <div className="relative">
+                  <div
+                    className={`absolute left-3 top-1/2 transform -translate-y-1/2 transition-colors duration-200 ${
+                      focusedField === "password"
+                        ? "text-[#0017e7]"
+                        : "text-[#bbb]"
+                    }`}
+                  >
+                    <Lock className="w-5 h-5" />
+                  </div>
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    id="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    onFocus={() => setFocusedField("password")}
+                    onBlur={() => setFocusedField("")}
+                    className="w-full pl-10 pr-10 py-2 border border-[#d6dbe1] rounded-[6px] focus:outline-none focus:ring-2 focus:ring-[#0017e7] focus:border-transparent text-[14px] bg-white hover:border-[#0017e7]/30 transition-all duration-200"
+                    placeholder="******"
+                    autoComplete="off"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#bbb] hover:text-[#0017e7] transition-colors duration-200"
+                    tabIndex={-1}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="w-5 h-5" />
+                    ) : (
+                      <Eye className="w-5 h-5" />
+                    )}
+                  </button>
+                </div>
               </div>
 
               {/* Forgot Password Link */}
@@ -385,8 +567,9 @@ const LoginAccount = () => {
                 type="button"
                 onClick={handleLogin}
                 className="w-full bg-[#0017e7] text-white py-2 px-4 rounded-full font-medium text-[15px] hover:bg-[#0033ff] focus:outline-none focus:ring-2 focus:ring-[#0017e7] focus:ring-offset-2 transition-all duration-200 shadow hover:shadow-lg transform hover:scale-[1.02] active:scale-[0.98]"
+                disabled={loginLoading}
               >
-                Login
+                {loginLoading ? "Processing..." : "Login"}
               </button>
 
               {/* OR Divider */}

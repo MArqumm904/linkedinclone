@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Search, User } from "lucide-react";
+import { useRef, useState, useEffect } from "react";
+import { Search, User, Moon, LogOut, Globe, Shield, UserCog } from "lucide-react";
 import Logo from "../assets/images/logo.jpg";
 import Homeicon from "../assets/images/home.png";
 import Marketplace from "../assets/images/market.png";
@@ -10,11 +10,21 @@ import Groups from "../assets/images/groups.png";
 import Bellicon from "../assets/images/bellicon.png";
 import AddFriends from "./addfriends";
 import { useNavigate } from "react-router-dom";
+import Person1 from "../assets/images/person-1.png";
+import axios from "axios";
+import PrivacySettings from "./profilecomponents/privacy_settings";
+import LanguageSettings from "./profilecomponents/select_language";
 
 export default function NavbarReplica() {
   const navigate = useNavigate();
   const [showaddfriendsPopup, setShowaddfriendsPopup] = useState(false);
   const [inputValue, setInputValue] = useState("");
+  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+  const profileDropdownRef = useRef(null);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [userData, setUserData] = useState(null);
+  const [showPrivacySettings, setShowPrivacySettings] = useState(false);
+  const [showLanguageSettings, setShowLanguageSettings] = useState(false);
 
   const ToProfile = () => {
     navigate("/profile");
@@ -26,24 +36,70 @@ export default function NavbarReplica() {
 
   const handleKeyPress = (e) => {
     if (e.key === "Enter" && inputValue.trim()) {
-      // Navigate to browse route with search query
       window.location.href = `/browse?q=${encodeURIComponent(
         inputValue.trim()
       )}`;
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/logout`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      localStorage.removeItem("token");
+      localStorage.removeItem("user_id");
+      localStorage.removeItem("user_name");
+      localStorage.removeItem("user_email");
+      navigate("/login");
+    } catch (e) {
+      alert("Logout failed. Please try again.");
+    }
+  };
+
   useEffect(() => {
-    if (showaddfriendsPopup) {
+    if (showaddfriendsPopup || showLanguageSettings) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "auto";
     }
-  }, [showaddfriendsPopup]);
+
+    function handleClickOutside(event) {
+      if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target)) {
+        setShowProfileDropdown(false);
+      }
+    }
+    if (showProfileDropdown) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.body.style.overflow = "auto";
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showaddfriendsPopup, showLanguageSettings, showProfileDropdown]);
+
+  useEffect(() => {
+    const userId = localStorage.getItem("user_id");
+    if (!userId) return;
+    fetch(`${import.meta.env.VITE_API_BASE_URL}/user/profile/${userId}`)
+      .then((res) => res.json())
+      .then((data) => setUserData(data.user))
+      .catch(() => setUserData(null));
+  }, []);
   return (
     <>
       {showaddfriendsPopup && (
         <AddFriends onClose={() => setShowaddfriendsPopup(false)} />
+      )}
+      {showPrivacySettings && (
+        <PrivacySettings onClose={() => setShowPrivacySettings(false)} />
+      )}
+      {showLanguageSettings && (
+        <LanguageSettings onClose={() => setShowLanguageSettings(false)} />
       )}
       {/* Desktop/Tablet Navbar */}
       <div className="w-full bg-gray-50 border-b border-gray-200 hidden md:block">
@@ -111,21 +167,107 @@ export default function NavbarReplica() {
             </div>
 
             {/* Right Section - Add Friends Button and Profile */}
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-4" ref={profileDropdownRef}>
               {/* Add Friends Button */}
               <button
                 onClick={() => setShowaddfriendsPopup(true)}
-                className="bg-[#efeff3] border border-[#333f7d] rounded-full px-5 py-2 text-[#333f7d] text-sm font-medium hover:bg-[#e5e5e9] transition-colors shadow-sm"
+                className="bg-[#efeff3] border border-[#333f7d] rounded-full px-6 py-3 text-[#333f7d] text-sm font-medium hover:bg-[#e5e5e9] transition-colors shadow-sm"
               >
                 Add Friends
               </button>
-
               {/* Profile Icon */}
               <div
-                onClick={ToProfile}
-                className="w-9 h-9 bg-[#e4e4e4] rounded-full flex items-center justify-center cursor-pointer hover:bg-[#e4e4e4] transition-colors"
+                onClick={() => setShowProfileDropdown((prev) => !prev)}
+                className="relative"
+                style={{ display: 'flex', alignItems: 'center' }}
               >
-                <User className="w-5 h-5 text-[#333f7d]" />
+                <div className="w-12 h-12 bg-[#e4e4e4] rounded-full flex items-center justify-center cursor-pointer hover:bg-[#e4e4e4] transition-colors overflow-hidden">
+                  <img
+                    src={Person1}
+                    alt="Profile"
+                    className="w-full h-full object-cover rounded-full"
+                  />
+                </div>
+                {/* Up Arrow Icon */}
+                <span className="absolute -bottom-1 -right-3 -translate-x-1/2 bg-white rounded-full p-0 flex items-center justify-center  cursor-pointer">
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    style={{
+                      transition: "transform 0.2s",
+                      transform: showProfileDropdown ? "rotate(180deg)" : "none"
+                    }}
+                  >
+                    <path d="M8 14l4-4 4 4" stroke="#222" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </span>
+                {/* Dropdown Menu */}
+                {showProfileDropdown && (
+                  <div className="absolute right-0 top-14 w-80 bg-white rounded-md shadow-2xl border border-[#0017e7] z-50 animate-fade-in" style={{boxShadow: "0 2px 24px 0 rgba(0,0,0,0.10)"}}>
+                    <div className="flex flex-col items-start p-5 border border-[#0017e7] rounded-md m-2 mb-0 bg-white" style={{width: 'calc(100% - 16px)'}}>
+                      <div className="flex items-center w-full">
+                        <img src={Person1} alt="Profile" className="w-12 h-12 rounded-full object-cover mr-3" />
+                        <div>
+                          <div className="font-bold text-[17px] leading-tight text-[#222]">{userData && userData.name}</div>
+                          <div className="text-gray-500 text-xs flex items-center gap-1 mt-0.5">
+                            <span>UI/UX Designer</span>
+                            <span className="text-xs">•</span>
+                            <span>{userData && userData.profile.location}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <button onClick={ToProfile} className="mt-4 w-full px-4 py-2 bg-[#0017e7] text-white rounded font-medium text-sm shadow-none border border-[#0017e7] hover:bg-[#0017e7] transition-colors" style={{height: '36px'}}>View Your Profile</button>
+                    </div>
+                    <div className="flex flex-col gap-1 px-0 py-4">
+                      <button onClick={() => setShowPrivacySettings(true)} className="flex items-center gap-3 text-[#222] py-2 px-6 bg-transparent hover:bg-gray-100 rounded-none text-[17px] font-normal">
+                        <UserCog className="w-6 h-6 text-[#222]" />
+                        <span className="flex-1 text-left">Privacy Setting</span>
+                      </button>
+                      <button onClick={() => setShowLanguageSettings(true)} className="flex items-center gap-3 text-[#222] py-2 px-6 bg-transparent hover:bg-gray-100 rounded-none text-[17px] font-normal">
+                        <Globe className="w-6 h-6 text-[#222]" />
+                        <span className="flex-1 text-left">Language</span>
+                      </button>
+                      <button className="flex items-center gap-3 text-[#222] py-2 px-6 bg-transparent hover:bg-gray-100 rounded-none text-[17px] font-normal">
+                        <Shield className="w-6 h-6 text-[#222]" />
+                        <span className="flex-1 text-left">Premium</span>
+                      </button>
+                      <div
+                        className="flex items-center gap-3 text-[#222] py-2 px-6 bg-transparent hover:bg-gray-100 rounded-none text-[17px] font-normal"
+                        // Prevent dropdown from closing when clicking on the dark mode row
+                        onMouseDown={e => e.stopPropagation()}
+                        onClick={e => e.stopPropagation()}
+                      >
+                        <Moon className="w-6 h-6 text-[#222]" />
+                        <span className="flex-1 text-left">Dark Mode</span>
+                        {/* iOS style toggle - now switchable and doesn't close dropdown */}
+                        <label className="relative inline-flex items-center cursor-pointer ml-2" onClick={e => e.stopPropagation()} onMouseDown={e => e.stopPropagation()}>
+                          <input
+                            type="checkbox"
+                            checked={isDarkMode}
+                            onChange={() => setIsDarkMode((prev) => !prev)}
+                            className="sr-only peer"
+                          />
+                          <div className="w-10 h-6  border border-gray-400 bg-gray-200 rounded-full peer peer-checked:bg-[#0019e9] transition-colors"></div>
+                          <div
+                            className="absolute left-0.5 top-0.5 w-5 h-5 rounded-full transition-all shadow"
+                            style={{
+                              background: isDarkMode ? 'white' : 'blue',
+                              border: '1px solid #ccc',
+                              transform: isDarkMode ? 'translateX(16px)' : 'translateX(0)',
+                              transition: 'transform 0.2s, background 0.2s'
+                            }}
+                          ></div>
+                        </label>
+                      </div>
+                      <button className="flex items-center gap-3 text-[#222] py-2 px-6 bg-transparent hover:bg-gray-100 rounded-none text-[17px] font-normal" onClick={handleLogout}>
+                        <LogOut className="w-6 h-6 text-[#222]" />
+                        <span className="flex-1 text-left">Log Out</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -145,8 +287,24 @@ export default function NavbarReplica() {
             {/* Right Icons */}
             <div className="flex items-center space-x-2">
               {/* Profile Icon */}
-              <div className="w-7 h-7 bg-[#e4e4e4] rounded-full flex items-center justify-center cursor-pointer hover:bg-[#e4e4e4] transition-colors">
-                <User className="w-5 h-5 text-[#333f7d]" />
+              <div className="w-7 h-7 bg-[#e4e4e4] rounded-full flex items-center justify-center cursor-pointer hover:bg-[#e4e4e4] transition-colors relative overflow-hidden">
+                <img
+                  src={Person1}
+                  alt="Profile"
+                  className="w-full h-full object-cover rounded-full"
+                />
+                {/* Up Arrow Icon */}
+                <span className="absolute bottom-0 right-0 bg-white rounded-full p-0.5 shadow flex items-center justify-center">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                    <path
+                      d="M8 14l4-4 4 4"
+                      stroke="#222"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </span>
               </div>
 
               {/* Search Icon */}

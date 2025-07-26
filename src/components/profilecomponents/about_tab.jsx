@@ -7,6 +7,7 @@ import AddCertificate from "./add_certificate"; // New import
 import CertificateCard from "./certificate_card"; // New import
 import AddSkill from "./add_skill";
 import SkillCard from "./added_skill_card";
+import axios from "axios";
 
 const ProfileAbout = () => {
   const [activeTab, setActiveTab] = useState("Overview");
@@ -39,6 +40,27 @@ const ProfileAbout = () => {
   const [showGenderInput, setShowGenderInput] = useState(false);
   const [dob, setDob] = useState("");
   const [showDobInput, setShowDobInput] = useState(false);
+  const [loadingOverview, setLoadingOverview] = useState(true);
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+  useEffect(() => {
+    const userId = localStorage.getItem("user_id");
+    const token = localStorage.getItem("token"); 
+    if (!userId || !token) {
+      setLoadingOverview(false);
+      return;
+    }
+    setLoadingOverview(true);
+    axios
+      .get(`${API_BASE_URL}/about/overview/${userId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then((res) => setOverviewText(res.data.description || ""))
+      .catch(() => setOverviewText(""))
+      .finally(() => setLoadingOverview(false));
+  }, []);
 
   useEffect(() => {
     if (showModal || showEducation || showCertificate || showSkill) {
@@ -168,6 +190,35 @@ const ProfileAbout = () => {
     setLanguageInput("");
   };
 
+  const handleSaveOverview = (text) => {
+    const userId = localStorage.getItem("user_id");
+    const token = localStorage.getItem("token");
+  
+    if (!userId || !token) return;
+  
+    const method = overviewText ? "put" : "post"; // use PUT instead of PATCH
+    const url = overviewText
+      ? `${API_BASE_URL}/about/overview/${userId}` // update
+      : `${API_BASE_URL}/about/overview`;         // create
+  
+    axios({
+      method: method,
+      url: url,
+      data: { description: text },
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((res) => {
+        setOverviewText(res.data.description || text);
+        setShowModal(false);
+      })
+      .catch((err) => {
+        console.error("Error saving overview:", err);
+      });
+  };
+  
+  
   const renderContent = () => {
     switch (activeTab) {
       case "Overview":
@@ -176,7 +227,9 @@ const ProfileAbout = () => {
             <h3 className="text-2xl font-sf font-semibold text-gray-900 mb-6 -mt-3">
               Hello, I'm Ransom.
             </h3>
-            {overviewText ? (
+            {loadingOverview ? (
+              <div>Loading...</div>
+            ) : overviewText ? (
               <div className="relative">
                 <p className="text-gray-700 text-lg font-sf whitespace-pre-line">
                   {overviewText}
@@ -677,10 +730,7 @@ const ProfileAbout = () => {
       <OverviewModal
         isOpen={showModal}
         onClose={() => setShowModal(false)}
-        onSave={(text) => {
-          setOverviewText(text);
-          setShowModal(false);
-        }}
+        onSave={handleSaveOverview}
         initialText={overviewText}
       />
 
