@@ -41,6 +41,7 @@ const ProfileAbout = () => {
   const [dob, setDob] = useState("");
   const [showDobInput, setShowDobInput] = useState(false);
   const [loadingOverview, setLoadingOverview] = useState(true);
+  const [userProfile, setUserProfile] = useState(null);
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   useEffect(() => {
@@ -61,6 +62,16 @@ const ProfileAbout = () => {
       .catch(() => setOverviewText(""))
       .finally(() => setLoadingOverview(false));
   }, []);
+
+  useEffect(() => {
+    const userId = localStorage.getItem("user_id");
+    if (!userId) return;
+    fetch(`${import.meta.env.VITE_API_BASE_URL}/user/profile/${userId}`)
+      .then((res) => res.json())
+      .then((data) => setUserProfile(data.user))
+      .catch(() => setUserProfile(null));
+  }, []);
+
 
   useEffect(() => {
     if (showModal || showEducation || showCertificate || showSkill) {
@@ -225,7 +236,7 @@ const ProfileAbout = () => {
         return (
           <div className="space-y-4">
             <h3 className="text-2xl font-sf font-semibold text-gray-900 mb-6 -mt-3">
-              Hello, I'm Ransom.
+              Hello, I'm {userProfile?.name}.
             </h3>
             {loadingOverview ? (
               <div>Loading...</div>
