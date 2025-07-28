@@ -9,12 +9,12 @@ const AddEducationForm = ({
   isEditMode = false,
 }) => {
   const [formData, setFormData] = useState({
-    schoolName: "",
+    schooluniname: "",
     qualification: "",
-    fieldOfStudy: "",
+    field_of_study: "",
     location: "",
-    startYear: "",
-    endYear: "",
+    start_year: "",
+    end_year: "",
     description: "",
   });
 
@@ -24,12 +24,12 @@ const AddEducationForm = ({
         setFormData(initialData);
       } else {
         setFormData({
-          schoolName: "",
+          schooluniname: "",
           qualification: "",
-          fieldOfStudy: "",
+          field_of_study: "",
           location: "",
-          startYear: "",
-          endYear: "",
+          start_year: "",
+          end_year: "",
           description: "",
         });
       }
@@ -79,9 +79,9 @@ const AddEducationForm = ({
             <div className="relative">
               <input
                 type="text"
-                value={formData.schoolName}
+                value={formData.schooluniname}
                 onChange={(e) =>
-                  handleInputChange("schoolName", e.target.value)
+                  handleInputChange("schooluniname", e.target.value)
                 }
                 placeholder="School / University Name"
                 className="w-full font-sf border border-gray-300 rounded-md px-3 py-2 text-sm pr-8"
@@ -143,9 +143,9 @@ const AddEducationForm = ({
             </label>
             <input
               type="text"
-              value={formData.fieldOfStudy}
+              value={formData.field_of_study}
               onChange={(e) =>
-                handleInputChange("fieldOfStudy", e.target.value)
+                handleInputChange("field_of_study", e.target.value)
               }
               placeholder="Computer Science"
               className="w-full border font-sf border-gray-300 rounded-md px-3 py-2 text-sm"
@@ -200,8 +200,8 @@ const AddEducationForm = ({
               </label>
               <input
                 type="text"
-                value={formData.startDate}
-                onChange={(e) => handleInputChange("startDate", e.target.value)}
+                value={formData.start_year}
+                onChange={(e) => handleInputChange("start_year", e.target.value)}
                 placeholder="Jan 2023"
                 className="w-full font-sf border border-gray-300 rounded-md px-3 py-2 text-sm"
               />
@@ -212,8 +212,8 @@ const AddEducationForm = ({
               </label>
               <input
                 type="text"
-                value={formData.endDate}
-                onChange={(e) => handleInputChange("endDate", e.target.value)}
+                value={formData.end_year}
+                onChange={(e) => handleInputChange("end_year", e.target.value)}
                 placeholder="June 2023"
                 className="w-full border font-sf border-gray-300 rounded-md px-3 py-2 text-sm"
               />

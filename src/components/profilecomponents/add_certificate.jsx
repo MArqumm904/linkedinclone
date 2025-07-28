@@ -11,10 +11,10 @@ const AddCertificate = ({
   const [formData, setFormData] = useState({
     title: "",
     organization: "",
-    startDate: "",
-    endDate: "",
+    start_year: "",
+    end_year: "",
     description: "",
-    certificateFile: null,
+    certificate_photo: null,
   });
 
   const [uploadedFile, setUploadedFile] = useState(null);
@@ -25,21 +25,24 @@ const AddCertificate = ({
     if (isOpen) {
       if (initialData) {
         setFormData(initialData);
-        setUploadedFile(initialData.certificateFile);
+        setUploadedFile(initialData.certificate_photo);
         // If initial data has an image, set preview
-        if (initialData.certificateFile && typeof initialData.certificateFile === 'object') {
+        if (initialData.certificate_photo && typeof initialData.certificate_photo === 'object') {
           const reader = new FileReader();
           reader.onload = (e) => setImagePreview(e.target.result);
-          reader.readAsDataURL(initialData.certificateFile);
+          reader.readAsDataURL(initialData.certificate_photo);
+        } else if (initialData.certificate_photo && typeof initialData.certificate_photo === 'string') {
+          // If it's a URL from API
+          setImagePreview(initialData.certificate_photo);
         }
       } else {
         setFormData({
           title: "",
           organization: "",
-          startDate: "",
-          endDate: "",
+          start_year: "",
+          end_year: "",
           description: "",
-          certificateFile: null,
+          certificate_photo: null,
         });
         setUploadedFile(null);
         setImagePreview(null);
@@ -61,10 +64,9 @@ const AddCertificate = ({
       setUploadedFile(file);
       setFormData((prev) => ({
         ...prev,
-        certificateFile: file,
+        certificate_photo: file,
       }));
 
-      // Create image preview for background
       if (file.type.startsWith('image/')) {
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -78,9 +80,17 @@ const AddCertificate = ({
   };
 
   const handleSave = () => {
+    // Validate required fields
+    if (!formData.title || !formData.organization || !formData.start_year || !formData.end_year || !uploadedFile) {
+      alert("Please fill all required fields including certificate photo");
+      return;
+    }
+
     const dataToSave = {
       ...formData,
-      certificateFile: uploadedFile,
+      certificate_photo: uploadedFile,
+      start_year: parseInt(formData.start_year),
+      end_year: parseInt(formData.end_year),
     };
     console.log("Saved Data:", dataToSave);
     onSave(dataToSave);
@@ -157,10 +167,10 @@ const AddCertificate = ({
                 Start Year
               </label>
               <input
-                type="text"
-                value={formData.startDate}
-                onChange={(e) => handleInputChange("startDate", e.target.value)}
-                placeholder="Jan 2023"
+                type="number"
+                value={formData.start_year}
+                onChange={(e) => handleInputChange("start_year", parseInt(e.target.value) || "")}
+                placeholder="2023"
                 className="w-full font-sf border border-gray-300 rounded-md px-3 py-2 text-sm"
               />
             </div>
@@ -169,10 +179,10 @@ const AddCertificate = ({
                 End Year
               </label>
               <input
-                type="text"
-                value={formData.endDate}
-                onChange={(e) => handleInputChange("endDate", e.target.value)}
-                placeholder="June 2023"
+                type="number"
+                value={formData.end_year}
+                onChange={(e) => handleInputChange("end_year", parseInt(e.target.value) || "")}
+                placeholder="2024"
                 className="w-full border font-sf border-gray-300 rounded-md px-3 py-2 text-sm"
               />
             </div>

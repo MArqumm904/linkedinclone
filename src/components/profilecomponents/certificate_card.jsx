@@ -14,10 +14,18 @@ const CertificateCard = ({ certificate, onEdit }) => {
   }, [showCertificate]);
 
   const handleViewCertificate = () => {
-    if (certificate.certificateFile) {
-      const url = URL.createObjectURL(certificate.certificateFile);
-      setImageUrl(url);
-      setShowCertificate(true);
+    if (certificate.certificate_photo) {
+      // If it's a File object (from form)
+      if (certificate.certificate_photo instanceof File) {
+        const url = URL.createObjectURL(certificate.certificate_photo);
+        setImageUrl(url);
+        setShowCertificate(true);
+      } 
+      // If it's a URL string (from API)
+      else if (typeof certificate.certificate_photo === 'string') {
+        setImageUrl(certificate.certificate_photo);
+        setShowCertificate(true);
+      }
     }
   };
 
@@ -31,7 +39,7 @@ const CertificateCard = ({ certificate, onEdit }) => {
 
   return (
     <>
-      <div className="border border-[#000] rounded-lg p-6 bg-white hover:shadow-sm transition-shadow relative">
+      <div className="border border-[#000] rounded-lg p-6 bg-white hover:shadow-sm transition-shadow relative mt-5">
         {/* Edit Button */}
         <button
           onClick={onEdit}
@@ -56,7 +64,7 @@ const CertificateCard = ({ certificate, onEdit }) => {
                   {certificate.title}
                 </h3>
                 <span className="text-sm text-gray-600 font-sf mt-2 ml-4 flex-shrink-0">
-                  {certificate.startDate} - {certificate.endDate}
+                  {certificate.start_year} - {certificate.end_year}
                 </span>
               </div>
 
@@ -90,9 +98,9 @@ const CertificateCard = ({ certificate, onEdit }) => {
           {/* View Certificate Button */}
           <button
             onClick={handleViewCertificate}
-            disabled={!certificate.certificateFile}
+            disabled={!certificate.certificate_photo}
             className={`px-4 py-2 font-sf rounded text-sm transition-colors ${
-              certificate.certificateFile
+              certificate.certificate_photo
                 ? "bg-[#0017e7] text-white hover:bg-[#0014c9]"
                 : "bg-gray-300 text-gray-500 cursor-not-allowed"
             }`}

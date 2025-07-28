@@ -3,8 +3,8 @@ import { CirclePlus, Pencil, Plus } from "lucide-react";
 import OverviewModal from "./about_overview_tab";
 import AddEducation from "./add_education";
 import EducationCard from "./added_education_card";
-import AddCertificate from "./add_certificate"; // New import
-import CertificateCard from "./certificate_card"; // New import
+import AddCertificate from "./add_certificate"; 
+import CertificateCard from "./certificate_card"; 
 import AddSkill from "./add_skill";
 import SkillCard from "./added_skill_card";
 import axios from "axios";
@@ -43,25 +43,91 @@ const ProfileAbout = () => {
   const [loadingOverview, setLoadingOverview] = useState(true);
   const [userProfile, setUserProfile] = useState(null);
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  const [loadingEducation, setLoadingEducation] = useState(false);
+  const [loadingCertificates, setLoadingCertificates] = useState(false);
 
+  // GET ABOUT OVERVIEW
   useEffect(() => {
     const userId = localStorage.getItem("user_id");
-    const token = localStorage.getItem("token"); 
-    if (!userId || !token) {
-      setLoadingOverview(false);
-      return;
+    const token = localStorage.getItem("token");
+
+    // Overview Tab
+    if (activeTab === "Overview") {
+      if (!userId || !token) {
+        setLoadingOverview(false);
+        return;
+      }
+      setLoadingOverview(true);
+      axios
+        .get(`${API_BASE_URL}/about/overview/${userId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .then((res) => setOverviewText(res.data.description || ""))
+        .catch(() => setOverviewText(""))
+        .finally(() => setLoadingOverview(false));
     }
-    setLoadingOverview(true);
-    axios
-      .get(`${API_BASE_URL}/about/overview/${userId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-      .then((res) => setOverviewText(res.data.description || ""))
-      .catch(() => setOverviewText(""))
-      .finally(() => setLoadingOverview(false));
-  }, []);
+
+    // Education Tab
+    if (activeTab === "Education") {
+      if (!userId || !token) return;
+      setLoadingEducation(true);
+      axios
+        .get(`${API_BASE_URL}/about/education/${userId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .then((res) => {
+          // console.log("Education API Response:", res.data); 
+          let data = res.data;
+          if (Array.isArray(data)) {
+            setEducationList(data);
+          } else if (Array.isArray(data.education)) {
+            setEducationList(data.education);
+          } else if (data.education) {
+            setEducationList([data.education]);
+          } else {
+            setEducationList([]);
+          }
+          setLoadingEducation(false);
+        })
+        .catch((error) => {
+          console.error("Education fetch error:", error); 
+          setEducationList([]);
+          setLoadingEducation(false);
+        });
+
+      // Fetch Certificates
+      setLoadingCertificates(true);
+      axios
+        .get(`${API_BASE_URL}/about/certification/${userId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .then((res) => {
+          console.log("Certificates API Response:", res.data); 
+          let data = res.data;
+          if (Array.isArray(data)) {
+            setCertificateList(data);
+          } else if (Array.isArray(data.certificates)) {
+            setCertificateList(data.certificates);
+          } else if (data.certificates) {
+            setCertificateList([data.certificates]);
+          } else {
+            setCertificateList([]);
+          }
+          setLoadingCertificates(false);
+        })
+        .catch((error) => {
+          console.error("Certificates fetch error:", error); 
+          setCertificateList([]);
+          setLoadingCertificates(false);
+        });
+    }
+  }, [activeTab, API_BASE_URL]);
 
   useEffect(() => {
     const userId = localStorage.getItem("user_id");
@@ -72,7 +138,6 @@ const ProfileAbout = () => {
       .catch(() => setUserProfile(null));
   }, []);
 
-
   useEffect(() => {
     if (showModal || showEducation || showCertificate || showSkill) {
       document.body.style.overflow = "hidden";
@@ -81,42 +146,107 @@ const ProfileAbout = () => {
     }
   }, [showModal, showEducation, showCertificate, showSkill]);
 
-  useEffect(() => {
-    console.log("Skills List Updated:", skillList);
-  }, [skillList]);
-
   const tabs = ["Overview", "Education", "Skill", "Info"];
 
-  const handleEducationSave = (educationData) => {
-    if (isEditMode && editingEducation !== null) {
-      setEducationList((prev) =>
-        prev.map((item, index) =>
-          index === editingEducation ? educationData : item
-        )
-      );
-    } else {
-      setEducationList((prev) => [...prev, educationData]);
-    }
+  const handleEducationSave = async (educationData) => {
+    const userId = localStorage.getItem("user_id");
+    const token = localStorage.getItem("token");
+    if (!userId || !token) return;
 
-    setEducation(false);
-    setEditingEducation(null);
-    setIsEditMode(false);
+    try {
+      let response;
+      if (isEditMode && editingEducation !== null && educationList[editingEducation]?.id) {
+        // Edit mode: PUT request
+        const educationId = educationList[editingEducation].id;
+        response = await axios.put(
+          `${API_BASE_URL}/about/education/${educationId}`,
+          { ...educationData, user_id: userId },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setEducationList((prev) =>
+          prev.map((item, index) =>
+            index === editingEducation ? response.data.education || educationData : item
+          )
+        );
+      } else {
+        response = await axios.post(
+          `${API_BASE_URL}/about/education`,
+          { ...educationData, user_id: userId },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setEducationList((prev) => [...prev, response.data.education || educationData]);
+      }
+    } catch (error) {
+      console.error("Error saving education:", error);
+    } finally {
+      setEducation(false);
+      setEditingEducation(null);
+      setIsEditMode(false);
+    }
   };
 
-  const handleCertificateSave = (certificateData) => {
-    if (isCertificateEditMode && editingCertificate !== null) {
-      setCertificateList((prev) =>
-        prev.map((item, index) =>
-          index === editingCertificate ? certificateData : item
-        )
-      );
-    } else {
-      setCertificateList((prev) => [...prev, certificateData]);
-    }
+  const handleCertificateSave = async (certificateData) => {
+    const userId = localStorage.getItem("user_id");
+    const token = localStorage.getItem("token");
+    if (!userId || !token) return;
 
-    setCertificate(false);
-    setEditingCertificate(null);
-    setIsCertificateEditMode(false);
+    try {
+      let response;
+      
+      // Create FormData for file upload
+      const formData = new FormData();
+      formData.append('title', certificateData.title);
+      formData.append('organization', certificateData.organization);
+      formData.append('start_year', certificateData.start_year);
+      formData.append('end_year', certificateData.end_year);
+      formData.append('description', certificateData.description || '');
+      formData.append('user_id', userId);
+      
+      if (certificateData.certificate_photo) {
+        formData.append('certificate_photo', certificateData.certificate_photo);
+      }
+
+      if (isCertificateEditMode && editingCertificate !== null && certificateList[editingCertificate]?.id) {
+        // Edit mode: PUT request
+        const certificateId = certificateList[editingCertificate].id;
+        response = await axios.put(
+          `${API_BASE_URL}/about/certification/${certificateId}`,
+          formData,
+          { 
+            headers: { 
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'multipart/form-data'
+            } 
+          }
+        );
+        setCertificateList((prev) =>
+          prev.map((item, index) =>
+            index === editingCertificate ? response.data.certificate || certificateData : item
+          )
+        );
+      } else {
+        response = await axios.post(
+          `${API_BASE_URL}/about/certification`,
+          formData,
+          { 
+            headers: { 
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'multipart/form-data'
+            } 
+          }
+        );
+        setCertificateList((prev) => [...prev, response.data.certificate || certificateData]);
+      }
+    } catch (error) {
+      console.error("Error saving certificate:", error);
+      if (error.response?.data?.errors) {
+        console.error("Validation errors:", error.response.data.errors);
+      }
+    } finally {
+      setCertificate(false);
+      setEditingCertificate(null);
+      setIsCertificateEditMode(false);
+    }
   };
 
   const handleEducationEdit = (education, index) => {
@@ -201,17 +331,18 @@ const ProfileAbout = () => {
     setLanguageInput("");
   };
 
+  // SAVE OVERVIEW
   const handleSaveOverview = (text) => {
     const userId = localStorage.getItem("user_id");
     const token = localStorage.getItem("token");
-  
+
     if (!userId || !token) return;
-  
-    const method = overviewText ? "put" : "post"; // use PUT instead of PATCH
+
+    const method = overviewText ? "put" : "post";
     const url = overviewText
-      ? `${API_BASE_URL}/about/overview/${userId}` // update
-      : `${API_BASE_URL}/about/overview`;         // create
-  
+      ? `${API_BASE_URL}/about/overview/${userId}`
+      : `${API_BASE_URL}/about/overview`;
+
     axios({
       method: method,
       url: url,
@@ -228,8 +359,7 @@ const ProfileAbout = () => {
         console.error("Error saving overview:", err);
       });
   };
-  
-  
+
   const renderContent = () => {
     switch (activeTab) {
       case "Overview":
@@ -270,108 +400,114 @@ const ProfileAbout = () => {
       case "Education":
         return (
           <div className="space-y-4">
-            {/* Education heading - Show above Add Education box when entries exist */}
-            {educationList.length > 0 && (
-              <h2 className="text-2xl font-sf font-semibold text-gray-900 mb-4">
-                Education
-              </h2>
-            )}
-
-            {/* Add Education Box */}
-            <div className="border border-[#000] rounded-lg p-6 bg-gray-50">
-              <h3 className="text-lg font-sf font-semibold text-gray-900 mb-2">
-                Add Education
-              </h3>
-              <p className="text-gray-600 text-sm mb-4 font-sf">
-                Show your academic background to build trust with employers or
-                clients.
-              </p>
-              <button
-                onClick={handleAddEducation}
-                className="bg-[#0017e7] mt-7 font-sf text-white px-4 py-2 rounded-md text-sm hover:bg-[#0013bf] transition-colors flex items-center gap-2"
-              >
-                <Plus className="w-5 h-5" />
-                Add Education
-              </button>
-            </div>
-
-            {/* Show added education entries */}
-            {educationList.length > 0 && (
-              <div className="space-y-4">
-                {/* Show only first education or all if showAllEducation is true */}
-                {(showAllEducation
-                  ? educationList
-                  : educationList.slice(0, 1)
-                ).map((education, index) => (
-                  <EducationCard
-                    key={index}
-                    education={education}
-                    onEdit={() => handleEducationEdit(education, index)}
-                  />
-                ))}
-
-                {/* Show More/Show Less button only if there are more than 1 education entries */}
-                {educationList.length > 1 && (
-                  <button
-                    onClick={() => setShowAllEducation(!showAllEducation)}
-                    className="text-[#000] font-sf text-sm px-4 py-2 border border-black rounded-md hover:bg-gray-50 transition-colors"
-                  >
-                    {showAllEducation ? "Show Less" : "Show More"}
-                  </button>
+            {loadingEducation || loadingCertificates ? (
+              <div>Loading...</div>
+            ) : (
+              <>
+                {/* Education heading - Show above Add Education box when entries exist */}
+                {educationList.length > 0 && (
+                  <h2 className="text-2xl font-sf font-semibold text-gray-900 mb-4">
+                    Education
+                  </h2>
                 )}
-              </div>
-            )}
 
-            {/* Certification heading - Show above Add Certification box when entries exist */}
-            {certificateList.length > 0 && (
-              <h2 className="text-2xl font-sf font-semibold text-gray-900 mb-4">
-                Certification
-              </h2>
-            )}
-
-            {/* Add Certification Box */}
-            <div className="border border-[#000] rounded-lg p-6 bg-gray-50">
-              <h3 className="text-lg font-sf font-semibold text-gray-900 mb-2">
-                Add Certification
-              </h3>
-              <p className="text-gray-600 font-sf text-sm mb-4">
-                Show your certifications to build trust with employers or
-                clients.
-              </p>
-              <button
-                onClick={handleAddCertificate}
-                className="bg-[#0017e7] mt-7 font-sf text-white px-4 py-2 rounded-md text-sm hover:bg-[#0013bf] transition-colors flex items-center gap-2"
-              >
-                <Plus className="w-5 h-5" />
-                Add Certification
-              </button>
-            </div>
-
-            {/* Show added certificate entries */}
-            {certificateList.length > 0 && (
-              <div className="">
-                {/* Show only first certificate or all if showAllCertificates is true */}
-                {(showAllCertificates
-                  ? certificateList
-                  : certificateList.slice(0, 1)
-                ).map((certificate, index) => (
-                  <CertificateCard
-                    key={index}
-                    certificate={certificate}
-                    onEdit={() => handleCertificateEdit(certificate, index)}
-                  />
-                ))}
-
-                {/* Show More/Show Less button only if there are more than 1 certificate entries */}
-                {certificateList.length > 1 && (
+                {/* Add Education Box */}
+                <div className="border border-[#000] rounded-lg p-6 bg-gray-50">
+                  <h3 className="text-lg font-sf font-semibold text-gray-900 mb-2">
+                    Add Education
+                  </h3>
+                  <p className="text-gray-600 text-sm mb-4 font-sf">
+                    Show your academic background to build trust with employers or
+                    clients.
+                  </p>
                   <button
-                    onClick={() => setShowAllCertificates(!showAllCertificates)}
-                    className="mt-5 text-[#000] font-sf text-sm px-4 py-2 border border-black rounded-md hover:bg-gray-50 transition-colors"
+                    onClick={handleAddEducation}
+                    className="bg-[#0017e7] mt-7 font-sf text-white px-4 py-2 rounded-md text-sm hover:bg-[#0013bf] transition-colors flex items-center gap-2"
                   >
-                    {showAllCertificates ? "Show Less" : "Show More"}
+                    <Plus className="w-5 h-5" />
+                    Add Education
                   </button>
+                </div>
+
+                {/* Show added education entries */}
+                {educationList.length > 0 && (
+                  <div className="space-y-4">
+                    {/* Show only first education or all if showAllEducation is true */}
+                    {(showAllEducation
+                      ? educationList
+                      : educationList.slice(0, 1)
+                    ).map((education, index) => (
+                      <EducationCard
+                        key={index}
+                        education={education}
+                        onEdit={() => handleEducationEdit(education, index)}
+                      />
+                    ))}
+
+                    {/* Show More/Show Less button only if there are more than 1 education entries */}
+                    {educationList.length > 1 && (
+                      <button
+                        onClick={() => setShowAllEducation(!showAllEducation)}
+                        className="text-[#000] font-sf text-sm px-4 py-2 border border-black rounded-md hover:bg-gray-50 transition-colors"
+                      >
+                        {showAllEducation ? "Show Less" : "Show More"}
+                      </button>
+                    )}
+                  </div>
                 )}
-              </div>
+
+                {/* Certification heading - Show above Add Certification box when entries exist */}
+                {certificateList.length > 0 && (
+                  <h2 className="text-2xl font-sf font-semibold text-gray-900 mb-4">
+                    Certification
+                  </h2>
+                )}
+
+                {/* Add Certification Box */}
+                <div className="border border-[#000] rounded-lg p-6 bg-gray-50">
+                  <h3 className="text-lg font-sf font-semibold text-gray-900 mb-2">
+                    Add Certification
+                  </h3>
+                  <p className="text-gray-600 font-sf text-sm mb-4">
+                    Show your certifications to build trust with employers or
+                    clients.
+                  </p>
+                  <button
+                    onClick={handleAddCertificate}
+                    className="bg-[#0017e7] mt-7 font-sf text-white px-4 py-2 rounded-md text-sm hover:bg-[#0013bf] transition-colors flex items-center gap-2"
+                  >
+                    <Plus className="w-5 h-5" />
+                    Add Certification
+                  </button>
+                </div>
+
+                {/* Show added certificate entries */}
+                {certificateList.length > 0 && (
+                  <div className="">
+                    {/* Show only first certificate or all if showAllCertificates is true */}
+                    {(showAllCertificates
+                      ? certificateList
+                      : certificateList.slice(0, 1)
+                    ).map((certificate, index) => (
+                      <CertificateCard
+                        key={index}
+                        certificate={certificate}
+                        onEdit={() => handleCertificateEdit(certificate, index)}
+                      />
+                    ))}
+
+                    {/* Show More/Show Less button only if there are more than 1 certificate entries */}
+                    {certificateList.length > 1 && (
+                      <button
+                        onClick={() => setShowAllCertificates(!showAllCertificates)}
+                        className="mt-5 text-[#000] font-sf text-sm px-4 py-2 border border-black rounded-md hover:bg-gray-50 transition-colors"
+                      >
+                        {showAllCertificates ? "Show Less" : "Show More"}
+                      </button>
+                    )}
+                  </div>
+                )}
+              </>
             )}
           </div>
         );
@@ -430,7 +566,9 @@ const ProfileAbout = () => {
                       <path d="M2 3.5C2 3.224 2.224 3 2.5 3H6.25C6.388 3 6.519 3.056 6.612 3.153L8.862 5.471C9.044 5.663 9.048 5.963 8.871 6.162L7.21 8.03a.25.25 0 0 0-.02.306A12.002 12.002 0 0 0 15.664 16.81a.25.25 0 0 0 .306-.02l1.868-1.662a.25.25 0 0 1 .307-.02l2.317 2.25a.75.75 0 0 1 .238.557V21.5a.5.5 0 0 1-.5.5h-.001C9.798 22 2 14.202 2 4.5V3.5Z" />
                     </svg>
                   </span>
-                  <span className="font-sf text-base font-medium text-[#636363]">+92 300 1234567</span>
+                  <span className="font-sf text-base font-medium text-[#636363]">
+                    +92 300 1234567
+                  </span>
                 </div>
               </div>
               <div className="flex-1">
@@ -537,11 +675,20 @@ const ProfileAbout = () => {
                 {/* Website Links */}
                 {websiteLinks.length > 0 && (
                   <div className="mb-2">
-                    <div className="font-sf text-base font-medium text-gray-700 mb-1">Website link</div>
+                    <div className="font-sf text-base font-medium text-gray-700 mb-1">
+                      Website link
+                    </div>
                     {websiteLinks.map((link, idx) => (
                       <div key={idx} className="flex items-center gap-2 mb-1">
                         <span>{renderWebsiteIcon(link)}</span>
-                        <a href={link} target="_blank" rel="noopener noreferrer" className="text-[#0017e7] underline truncate max-w-xs block">{link}</a>
+                        <a
+                          href={link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[#0017e7] underline truncate max-w-xs block"
+                        >
+                          {link}
+                        </a>
                       </div>
                     ))}
                   </div>
@@ -558,7 +705,10 @@ const ProfileAbout = () => {
                     <button
                       onClick={() => {
                         if (websiteInput.trim() !== "") {
-                          setWebsiteLinks([...websiteLinks, websiteInput.trim()]);
+                          setWebsiteLinks([
+                            ...websiteLinks,
+                            websiteInput.trim(),
+                          ]);
                         }
                         setShowWebsiteInput(false);
                         setWebsiteInput("");
@@ -569,7 +719,10 @@ const ProfileAbout = () => {
                     </button>
                   </div>
                 ) : (
-                  <button className="flex mt-3 items-center text-lg text-[#0017e7] font-sf font-medium hover:text-[#0013bf] transition-colors" onClick={() => setShowWebsiteInput(true)}>
+                  <button
+                    className="flex mt-3 items-center text-lg text-[#0017e7] font-sf font-medium hover:text-[#0013bf] transition-colors"
+                    onClick={() => setShowWebsiteInput(true)}
+                  >
                     <CirclePlus className="w-7 h-7 mr-1" />
                     Add a website
                   </button>
@@ -577,12 +730,21 @@ const ProfileAbout = () => {
                 {/* Social Links */}
                 {socialLinks.length > 0 && (
                   <div className="mb-2">
-                    <div className="font-sf text-base font-medium text-gray-700 mb-1">Social link</div>
+                    <div className="font-sf text-base font-medium text-gray-700 mb-1">
+                      Social link
+                    </div>
                     <div className="flex flex-wrap gap-6">
                       {socialLinks.map((link, idx) => (
                         <div key={idx} className="flex items-center gap-2 mb-1">
                           <span>{renderSocialIcon(link)}</span>
-                          <a href={link} target="_blank" rel="noopener noreferrer" className="text-[#0017e7] underline truncate max-w-xs block">{link}</a>
+                          <a
+                            href={link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[#0017e7] underline truncate max-w-xs block"
+                          >
+                            {link}
+                          </a>
                         </div>
                       ))}
                     </div>
@@ -611,7 +773,10 @@ const ProfileAbout = () => {
                     </button>
                   </div>
                 ) : (
-                  <button className="flex mt-3 items-center text-lg text-[#0017e7] font-sf font-medium hover:text-[#0013bf] transition-colors" onClick={() => setShowSocialInput(true)}>
+                  <button
+                    className="flex mt-3 items-center text-lg text-[#0017e7] font-sf font-medium hover:text-[#0013bf] transition-colors"
+                    onClick={() => setShowSocialInput(true)}
+                  >
                     <CirclePlus className="w-7 h-7 mr-1" />
                     Add a social link
                   </button>
@@ -627,7 +792,9 @@ const ProfileAbout = () => {
                 </div>
                 {gender && !showGenderInput ? (
                   <div className="flex items-center mt-3">
-                    <span className="font-sf text-md text-[#636363] font-medium mr-2">{gender}</span>
+                    <span className="font-sf text-md text-[#636363] font-medium mr-2">
+                      {gender}
+                    </span>
                     <button
                       className="p-1.5 text-gray-500 hover:text-gray-600 rounded-full border border-gray-500 hover:border-gray-500 transition-colors ml-2"
                       onClick={() => setShowGenderInput(true)}
@@ -640,13 +807,15 @@ const ProfileAbout = () => {
                     <select
                       className="border border-[#5a5a5a] rounded px-3 py-2 font-sf"
                       value={gender}
-                      onChange={e => setGender(e.target.value)}
+                      onChange={(e) => setGender(e.target.value)}
                     >
                       <option value="">Select Gender</option>
                       <option value="Male">Male</option>
                       <option value="Female">Female</option>
                       <option value="Other">Other</option>
-                      <option value="Prefer not to say">Prefer not to say</option>
+                      <option value="Prefer not to say">
+                        Prefer not to say
+                      </option>
                     </select>
                     <button
                       onClick={() => setShowGenderInput(false)}
@@ -656,7 +825,10 @@ const ProfileAbout = () => {
                     </button>
                   </div>
                 ) : (
-                  <button className="flex items-center text-[#0017e7] font-sf font-medium  mt-3 hover:text-[#0013bf] transition-colors" onClick={() => setShowGenderInput(true)}>
+                  <button
+                    className="flex items-center text-[#0017e7] font-sf font-medium  mt-3 hover:text-[#0013bf] transition-colors"
+                    onClick={() => setShowGenderInput(true)}
+                  >
                     <CirclePlus className="w-7 h-7 mr-1" />
                     Add Gender
                   </button>
@@ -668,7 +840,9 @@ const ProfileAbout = () => {
                 </div>
                 {dob && !showDobInput ? (
                   <div className="flex items-center mt-3">
-                    <span className="font-sf text-md text-[#636363] font-medium mr-2">{dob}</span>
+                    <span className="font-sf text-md text-[#636363] font-medium mr-2">
+                      {dob}
+                    </span>
                     <button
                       className="p-1.5 text-gray-500 hover:text-gray-600 rounded-full border border-gray-500 hover:border-gray-500 transition-colors ml-2"
                       onClick={() => setShowDobInput(true)}
@@ -682,7 +856,7 @@ const ProfileAbout = () => {
                       type="date"
                       className="border border-[#5a5a5a] rounded px-3 py-2 font-sf"
                       value={dob}
-                      onChange={e => setDob(e.target.value)}
+                      onChange={(e) => setDob(e.target.value)}
                     />
                     <button
                       onClick={() => setShowDobInput(false)}
@@ -692,7 +866,10 @@ const ProfileAbout = () => {
                     </button>
                   </div>
                 ) : (
-                  <button className="flex items-center text-[#0017e7] font-sf font-medium  mt-3  hover:text-[#0013bf] transition-colors" onClick={() => setShowDobInput(true)}>
+                  <button
+                    className="flex items-center text-[#0017e7] font-sf font-medium  mt-3  hover:text-[#0013bf] transition-colors"
+                    onClick={() => setShowDobInput(true)}
+                  >
                     <CirclePlus className="w-7 h-7 mr-1" />
                     Add Date of Birth
                   </button>
@@ -786,26 +963,62 @@ const ProfileAbout = () => {
 
 function renderWebsiteIcon(link) {
   return (
-    <img src={`https://www.google.com/s2/favicons?domain_url=${encodeURIComponent(link)}&sz=32`} alt="website" className="w-6 h-6" />
+    <img
+      src={`https://www.google.com/s2/favicons?domain_url=${encodeURIComponent(
+        link
+      )}&sz=32`}
+      alt="website"
+      className="w-6 h-6"
+    />
   );
 }
 
 function renderSocialIcon(link) {
   // Return the correct icon based on the link
   if (link.includes("facebook.com")) {
-    return <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/2023_Facebook_icon.svg/2048px-2023_Facebook_icon.svg.png" alt="fb" className="w-6 h-6" />;
+    return (
+      <img
+        src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/2023_Facebook_icon.svg/2048px-2023_Facebook_icon.svg.png"
+        alt="fb"
+        className="w-6 h-6"
+      />
+    );
   }
   if (link.includes("instagram.com")) {
-    return <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTpNPYBLb6Z4PIJSlr6qXbUy8VZ0w2w4BPPVQ&s" alt="instagram" className="w-6 h-6" />;
+    return (
+      <img
+        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTpNPYBLb6Z4PIJSlr6qXbUy8VZ0w2w4BPPVQ&s"
+        alt="instagram"
+        className="w-6 h-6"
+      />
+    );
   }
   if (link.includes("linkedin.com")) {
-    return <img src="https://i.pinimg.com/736x/b2/f8/28/b2f828513f21444829a619ce563d4d4e.jpg" alt="linkedin" className="w-6 h-6" />;
+    return (
+      <img
+        src="https://i.pinimg.com/736x/b2/f8/28/b2f828513f21444829a619ce563d4d4e.jpg"
+        alt="linkedin"
+        className="w-6 h-6"
+      />
+    );
   }
   if (link.includes("x.com") || link.includes("twitter.com")) {
-    return <img src="https://img.freepik.com/premium-vector/x-rounded-icon_1144215-148.jpg" alt="x" className="w-6 h-6" />;
+    return (
+      <img
+        src="https://img.freepik.com/premium-vector/x-rounded-icon_1144215-148.jpg"
+        alt="x"
+        className="w-6 h-6"
+      />
+    );
   }
   // fallback generic icon
-  return <img src="https://cdn-icons-png.flaticon.com/512/7046/7046086.png" alt="link" className="w-6 h-6" />;
+  return (
+    <img
+      src="https://cdn-icons-png.flaticon.com/512/7046/7046086.png"
+      alt="link"
+      className="w-6 h-6"
+    />
+  );
 }
 
 export default ProfileAbout;

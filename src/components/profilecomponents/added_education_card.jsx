@@ -26,10 +26,10 @@ const EducationCard = ({ education, onEdit }) => {
           {/* University Name and Duration on same line */}
           <div className="flex items-baseline mb-1">
             <h3 className="text-lg font-sf font-semibold text-gray-900 pr-4">
-              {education.schoolName}
+              {education.schoolName || education.schooluniname}
             </h3>
             <div className="text-xs font-sf text-gray-500 flex-shrink-0">
-              {education.startYear} - {education.endYear}
+              {education.startYear || education.start_year} - {education.endYear || education.end_year}
             </div>
           </div>
 
