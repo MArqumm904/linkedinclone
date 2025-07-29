@@ -60,12 +60,12 @@ const StoryViewer = ({ isOpen, onClose, stories, currentStoryIndex, currentUserS
 
   const handleViewersClick = () => {
     setShowViewersModal(true);
-    setIsPlaying(false); // Pause story when viewers modal opens
+    setIsPlaying(false); 
   };
 
   const handleViewersClose = () => {
     setShowViewersModal(false);
-    setIsPlaying(true); // Resume story when viewers modal closes
+    setIsPlaying(true); 
   };
 
   const nextStory = () => {

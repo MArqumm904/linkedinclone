@@ -4,33 +4,55 @@ import {
   ThumbsUp,
   MessageCircle,
   Forward,
-  Pencil,
-  Trash2,
-  Eye,
   Play,
 } from "lucide-react";
 import Person1 from "../../assets/images/person-1.png";
 import PostImage from "../../assets/images/postimage.png";
-import SponserImage from "../../assets/images/sponsor-image.png";
-import Upload from "../../assets/images/upload.png";
-import SponserImage2 from "../../assets/images/sponsor-image-2.png";
+import bookmark from "../../assets/images/bookmark 1.png";
+import avatorr from "../../assets/images/avatorr.png";
+import error from "../../assets/images/error.png";
+import addtostory from "../../assets/images/addtostory.png";
 import PostCreate from "../profilecomponents/post_edit";
+import PostComment from "../post_comment";
+import PostShare from "../post_share";
 
-const PostTab = ({
+const HomePostTab = ({
   text_posts_data = [],
   image_posts_data = [],
   video_posts_data = [],
+  onAddToStory,
 }) => {
   const [showMenu, setShowMenu] = useState({});
   const [showFullText, setShowFullText] = useState({});
   const [isLiked, setIsLiked] = useState({});
   const [showAnimation, setShowAnimation] = useState({});
-  const [showCommentPopup, setShowCommentPopup] = useState(false);
-  const [showSharePopup, setShowSharePopup] = useState(false);
+  const [showCommentPopup, setShowCommentPopup] = useState({});
+  const [showSharePopup, setShowSharePopup] = useState({});
   const [videoPlaying, setVideoPlaying] = useState({});
   const [showPostCreatePopup, setShowPostCreatePopup] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
   const menuRef = useRef(null);
+
+  const recommendations = [
+    {
+      id: 1,
+      name: "Sarah Malik",
+      avatar: PostImage,
+      description: "Freelance Web designer helping startups build bold, modern brand identities",
+    },
+    {
+      id: 2,
+      name: "Arshpixels",
+      avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=50&h=50&fit=crop&crop=face",
+      description: "Freelance designer helping startups build bold, modern brand identities",
+    },
+    {
+      id: 3,
+      name: "Codebyrixa",
+      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=50&h=50&fit=crop&crop=face",
+      description: "Freelance iOS Developer helping startups build bold, modern brand identities",
+    },
+  ];
 
   const handleLike = (postId) => {
     setIsLiked((prev) => ({ ...prev, [postId]: !prev[postId] }));
@@ -48,12 +70,14 @@ const PostTab = ({
     setShowPostCreatePopup(true);
   };
 
-  const handleAddToStoryFromMenu = (postId) => {
-    setShowMenu((prev) => ({ ...prev, [postId]: false }));
-  };
-
   const toggleMenu = (postId) => {
-    setShowMenu((prev) => ({ ...prev, [postId]: !prev[postId] }));
+    setShowMenu((prev) => ({
+      ...Object.keys(prev).reduce((acc, key) => {
+        acc[key] = false;
+        return acc;
+      }, {}),
+      [postId]: !prev[postId],
+    }));
   };
 
   const toggleFullText = (postId) => {
@@ -123,7 +147,6 @@ const PostTab = ({
             <div className="relative bg-black overflow-hidden w-full">
               <video
                 controls
-                // poster={post.thumbnail}
                 className="w-full h-[35rem] object-cover"
                 onPlay={() => handleVideoPlay(post.uniqueId)}
                 onPause={() => handleVideoPause(post.uniqueId)}
@@ -136,7 +159,6 @@ const PostTab = ({
                 Your browser does not support the video tag.
               </video>
 
-              {/* Custom Play Button Overlay - Only show when video is not playing */}
               {!videoPlaying[post.uniqueId] && (
                 <div
                   className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 cursor-pointer"
@@ -180,12 +202,54 @@ const PostTab = ({
       {showPostCreatePopup && (
         <PostCreate
           onClose={() => setShowPostCreatePopup(false)}
-          editData={selectedPost} 
+          editData={selectedPost}
         />
       )}
-      <div className="w-full max-w-full py-6">
-        <div className="grid grid-cols-12 gap-6 w-full">
-          {/* Left Side - Post Section (7 cols) */}
+
+      {/* Comment Popup */}
+      {Object.keys(showCommentPopup).map(
+        (postId) =>
+          showCommentPopup[postId] && (
+            <PostComment
+              key={`comment-${postId}`}
+              post_image={
+                sortedPosts.find((p) => p.uniqueId === postId)?.type === "image"
+                  ? sortedPosts.find((p) => p.uniqueId === postId)?.image
+                  : null
+              }
+              text={
+                sortedPosts.find((p) => p.uniqueId === postId)?.type === "text"
+                  ? sortedPosts.find((p) => p.uniqueId === postId)?.content
+                  : null
+              }
+              videoUrl={
+                sortedPosts.find((p) => p.uniqueId === postId)?.type === "video"
+                  ? sortedPosts.find((p) => p.uniqueId === postId)?.video
+                  : null
+              }
+              onClose={() =>
+                setShowCommentPopup((prev) => ({ ...prev, [postId]: false }))
+              }
+            />
+          )
+      )}
+
+      {/* Share Popup */}
+      {Object.keys(showSharePopup).map(
+        (postId) =>
+          showSharePopup[postId] && (
+            <PostShare
+              key={`share-${postId}`}
+              videoUrl={sortedPosts.find((p) => p.uniqueId === postId)?.video}
+              onClose={() =>
+                setShowSharePopup((prev) => ({ ...prev, [postId]: false }))
+              }
+            />
+          )
+      )}
+
+      <div className="w-full max-w-full ">
+        <div className="grid gap-6 w-full">
           <div className="col-span-12 lg:col-span-7 w-full">
             {sortedPosts.map((post) => (
               <div
@@ -225,37 +289,34 @@ const PostTab = ({
                     </button>
 
                     {showMenu[post.uniqueId] && (
-                      <div className="absolute right-0 -mt-3 w-52 bg-white border border-gray-200 rounded-md shadow-md z-10 p-2 space-y-2 text-sm">
-                        <button
-                          className="w-full flex items-center gap-2 px-3 py-1 hover:bg-gray-100 rounded-md text-left"
-                          onClick={() => handleEditPost(post.uniqueId)}
-                        >
-                          <span>
-                            <Pencil />
-                          </span>
-                          <span>Edit Post</span>
+                      <div className="absolute right-0 mt-1 w-52 bg-white border border-gray-200 rounded-md shadow-md z-10 p-2 space-y-2 text-sm">
+                        <button className="w-full flex items-center gap-2 px-3 py-1 hover:bg-gray-100 rounded-md text-left">
+                          <img src={bookmark} alt="Save" className="w-4 h-4" />
+                          <span>Save Post</span>
                         </button>
                         <button className="w-full flex items-center gap-2 px-3 py-1 hover:bg-gray-100 rounded-md text-left">
-                          <span>
-                            <Eye />
-                          </span>
+                          <img
+                            src={avatorr}
+                            alt="Profile"
+                            className="w-4 h-4"
+                          />
                           <span>View The Profile</span>
                         </button>
                         <button className="w-full flex items-center gap-2 px-3 py-1 hover:bg-gray-100 rounded-md text-left text-red-600 font-medium">
-                          <span>
-                            <Trash2 />
-                          </span>
-                          <span>Delete Post</span>
+                          <img src={error} alt="Report" className="w-4 h-4" />
+                          <span>Report Post</span>
                         </button>
                         <button
                           className="w-full flex items-center gap-2 px-3 py-1 hover:bg-gray-100 rounded-md text-left"
-                          onClick={() =>
-                            handleAddToStoryFromMenu(post.uniqueId)
-                          }
+                          onClick={() => {
+                            onAddToStory(post);
+                            setShowMenu((prev) => ({
+                              ...prev,
+                              [post.uniqueId]: false,
+                            }));
+                          }}
                         >
-                          <span>
-                            <img src={Upload} className="w-6 h-6" alt="" />
-                          </span>
+                          <img src={addtostory} alt="Add" className="w-4 h-4" />
                           <span>Add to story</span>
                         </button>
                       </div>
@@ -266,7 +327,6 @@ const PostTab = ({
                 {/* Post Description */}
                 {post.content && post.type !== "text" && (
                   <p className="px-5 text-gray-600 text-sm mb-3 font-sf mt-3 font-medium">
-                    {/* Mobile: Toggle text */}
                     <span className="block md:hidden">
                       {showFullText[post.uniqueId]
                         ? post.content
@@ -285,7 +345,6 @@ const PostTab = ({
                       )}
                     </span>
 
-                    {/* Desktop: Always show full text, no toggle */}
                     <span className="hidden md:block">{post.content}</span>
                   </p>
                 )}
@@ -296,7 +355,6 @@ const PostTab = ({
                 {/* Reactions */}
                 <div className="px-4 py-3 border-b border-gray-100">
                   <div className="flex items-center justify-between">
-                    {/* Left side - Reaction icons and count */}
                     <div className="flex items-center space-x-2 ms-1">
                       <div className="flex items-center -space-x-2">
                         <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center border-2 border-white z-10">
@@ -311,7 +369,6 @@ const PostTab = ({
                       </span>
                     </div>
 
-                    {/* Right side - Comments and views */}
                     <div className="flex items-center space-x-4 text-sm text-gray-500">
                       <span>{post.comments || 0} Comments</span>
                       <span className="text-gray-300">|</span>
@@ -341,7 +398,6 @@ const PostTab = ({
                           }
                         />
 
-                        {/* Animation effect */}
                         {showAnimation[post.uniqueId] && (
                           <div className="absolute inset-0 pointer-events-none">
                             <div className="absolute -top-1 left-0 animate-ping opacity-75">
@@ -357,7 +413,12 @@ const PostTab = ({
                       <span className="text-sm font-medium">Like</span>
                     </button>
                     <button
-                      onClick={() => setShowCommentPopup(true)}
+                      onClick={() =>
+                        setShowCommentPopup((prev) => ({
+                          ...prev,
+                          [post.uniqueId]: true,
+                        }))
+                      }
                       className="flex items-center space-x-2 text-gray-600 hover:text-blue-500 transition-colors"
                     >
                       <MessageCircle className="w-5 h-5" />
@@ -365,7 +426,12 @@ const PostTab = ({
                     </button>
 
                     <button
-                      onClick={() => setShowSharePopup(true)}
+                      onClick={() =>
+                        setShowSharePopup((prev) => ({
+                          ...prev,
+                          [post.uniqueId]: true,
+                        }))
+                      }
                       className="flex items-center space-x-2 text-gray-600 hover:text-blue-500 transition-colors"
                     >
                       <Forward className="w-5 h-5" />
@@ -376,80 +442,53 @@ const PostTab = ({
               </div>
             ))}
           </div>
+        </div>
+      </div>
+      <div className="bg-white rounded-lg border p-2 border-gray-200 shadow-sm mx-auto">
+        {/* Header */}
+        <div className="px-4 py-3 border-b">
+          <h2 className="text-gray-600 font-medium text-sm">
+            Recommended For You
+          </h2>
+        </div>
 
-          {/* Right Side - Page Cards Section (5 cols) */}
-          <div className="col-span-12 lg:col-span-5 w-full">
-            <div className="space-y-4 w-full">
-              {/* First Page Card - Leadership Academy */}
-              <div className="bg-white border border-[#6873b0] rounded-lg shadow-lg overflow-hidden mb-7">
-                <div className="bg-gray-100 border-b border-blue-400 rounded-t-lg p-4">
-                  <h2 className="text-gray-600 font-sf text-xl font-medium">
-                    Sponsors
-                  </h2>
-                </div>
-                {/* Header Section */}
-                <div className="relative p-4">
-                  {/* Warning Icon and Title */}
-                  <div className="flex items-center mb-3">
-                    <div className="w-6 h-6 rounded-full flex items-center justify-center mr-3">
-                      <span className="text-black font-bold text-lg">🖥️</span>
-                    </div>
-                    <h3 className="text-black font-semibold text-xl font-sf">
-                      "Join UI/UX Design Bootcamp – 50% Off"
-                    </h3>
-                  </div>
-
-                  {/* Website Link */}
-                  <p className="text-blue-700 underline text-sm mb-4 cursor-pointer">
-                    https://www.reallygreatsite.com
-                  </p>
-                </div>
-
-                {/* Main Content Section */}
-                <div className="relative flex items-center h-[450px]">
-                  <img
-                    src={SponserImage}
-                    alt="Scholarship notification background"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
+        {/* Recommendations List */}
+        <div className="p-4 space-y-4">
+          {recommendations.map((person) => (
+            <div
+              key={person.id}
+              className="flex items-start space-x-4  border-b pb-3"
+            >
+              {/* Avatar */}
+              <div className="flex-shrink-0">
+                <img
+                  src={person.avatar}
+                  alt={person.name}
+                  className="w-14 h-14 rounded object-cover"
+                />
               </div>
-              {/* first card ends here */}
-              {/* Second Page Card - Leadership Academy */}
-              <div className="bg-white border border-[#6873b0] rounded-lg shadow-lg overflow-hidden mb-7">
-                {/* Header Section */}
-                <div className="relative p-6">
-                  {/* Warning Icon and Title */}
-                  <div className="flex items-center mb-3">
-                    <div className="w-6 h-6  rounded-full flex items-center justify-center mr-3">
-                      <span className="text-black font-bold text-lg">🖥️</span>
-                    </div>
-                    <h3 className="text-black font-semibold text-xl font-sf">
-                      "Free IT Course - Sponsored by Codelab"
-                    </h3>
-                  </div>
 
-                  {/* Website Link */}
-                  <p className="text-blue-700 underline text-sm cursor-pointer">
-                    https://www.careervision.com
-                  </p>
+              {/* Content */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center space-x-2 mb-1">
+                  <h3 className="font-medium text-gray-900 text-lg">
+                    {person.name}
+                  </h3>
+                  <span className="text-xs text-[#0017e7]">•</span>
+                  <button className="text-[#0017e7] text-xs font-medium hover:underline">
+                    Connect
+                  </button>
                 </div>
-
-                {/* Main Content Section */}
-                <div className="relative flex items-center">
-                  <img
-                    src={SponserImage2}
-                    alt="Scholarship notification background"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
+                <p className="text-gray-600 text-sm leading-relaxed">
+                  {person.description}
+                </p>
               </div>
             </div>
-          </div>
+          ))}
         </div>
       </div>
     </>
   );
 };
 
-export default PostTab;
+export default HomePostTab;
