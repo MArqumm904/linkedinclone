@@ -18,6 +18,8 @@ const AddEducationForm = ({
     description: "",
   });
 
+  const [error, setError] = useState("");
+
   useEffect(() => {
     if (isOpen) {
       if (initialData) {
@@ -33,6 +35,7 @@ const AddEducationForm = ({
           description: "",
         });
       }
+      setError(""); // Reset error on open
     }
   }, [isOpen, initialData]);
 
@@ -41,9 +44,19 @@ const AddEducationForm = ({
       ...prev,
       [field]: value,
     }));
+    setError(""); // Clear error on input change
   };
 
   const handleSave = () => {
+    // Check for empty fields
+    const emptyField = Object.entries(formData).find(
+      ([key, value]) => value.trim() === ""
+    );
+    if (emptyField) {
+      setError("Please fill all fields.");
+      return;
+    }
+    setError("");
     onSave(formData);
   };
 
@@ -69,11 +82,20 @@ const AddEducationForm = ({
           </button>
         </div>
 
+        {/* Error Message */}
+        {error && (
+          <div className="px-4 pt-3 pb-1">
+            <div className="bg-red-100 text-red-700 rounded px-3 py-2 text-sm font-sf">
+              {error}
+            </div>
+          </div>
+        )}
+
         {/* Form Content */}
         <div className="p-4 space-y-4">
           {/* School/University Name */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1 font-sf">
+            <label className="block text-sm font-medium text-[#707070] mb-1 font-sf">
               School / University Name
             </label>
             <div className="relative">
@@ -94,7 +116,7 @@ const AddEducationForm = ({
 
           {/* Qualification */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1 font-sf">
+            <label className="block text-sm font-medium text-[#707070] mb-1 font-sf">
               Qualification
             </label>
             <div className="relative">
@@ -138,7 +160,7 @@ const AddEducationForm = ({
 
           {/* Field of Study */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1 font-sf">
+            <label className="block text-sm font-medium text-[#707070] mb-1 font-sf">
               Field of Study
             </label>
             <input
@@ -157,7 +179,7 @@ const AddEducationForm = ({
 
           {/* Location */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1 font-sf">
+            <label className="block text-sm font-medium text-[#707070] mb-1 font-sf">
               Location
             </label>
             <div className="relative">
@@ -195,34 +217,50 @@ const AddEducationForm = ({
           {/* Start Year and End Year */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1 font-sf">
+              <label className="block text-sm font-medium text-[#707070] mb-1 font-sf">
                 Start Year
               </label>
-              <input
-                type="text"
+              <select
                 value={formData.start_year}
                 onChange={(e) => handleInputChange("start_year", e.target.value)}
-                placeholder="Jan 2023"
-                className="w-full font-sf border border-gray-300 rounded-md px-3 py-2 text-sm"
-              />
+                className="w-full font-sf border border-gray-300 rounded-md px-3 py-2 text-sm cursor-pointer appearance-none pr-8"
+              >
+                <option value="">Select year</option>
+                {Array.from({ length: 50 }, (_, i) => {
+                  const year = new Date().getFullYear() - i;
+                  return (
+                    <option key={year} value={year}>
+                      {year}
+                    </option>
+                  );
+                })}
+              </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1 font-sf">
+              <label className="block text-sm font-medium text-[#707070] mb-1 font-sf">
                 End Year
               </label>
-              <input
-                type="text"
+              <select
                 value={formData.end_year}
                 onChange={(e) => handleInputChange("end_year", e.target.value)}
-                placeholder="June 2023"
-                className="w-full border font-sf border-gray-300 rounded-md px-3 py-2 text-sm"
-              />
+                className="w-full font-sf border border-gray-300 rounded-md px-3 py-2 text-sm cursor-pointer appearance-none pr-8"
+              >
+                <option value="">Select year</option>
+                {Array.from({ length: 50 }, (_, i) => {
+                  const year = new Date().getFullYear() - i + 10; // Allow future years for graduation
+                  return (
+                    <option key={year} value={year}>
+                      {year}
+                    </option>
+                  );
+                })}
+              </select>
             </div>
           </div>
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1 font-sf">
+            <label className="block text-sm font-medium text-[#707070] mb-1 font-sf">
               Description
             </label>
             <textarea
@@ -239,7 +277,7 @@ const AddEducationForm = ({
         <div className="flex items-center p-4 border-t border-gray-200">
           <button
             onClick={handleSave}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md text-sm font-medium transition-colors"
+            className="bg-[#0017e2] hover:bg-[#0016c4] text-white px-6 py-2 rounded-md text-sm font-medium transition-colors"
           >
             {isEditMode ? "Update Education" : "Save Education"}
           </button>

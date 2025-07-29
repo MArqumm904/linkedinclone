@@ -1,17 +1,25 @@
 import React from "react";
-import { Pencil, MapPin, GraduationCap, Book } from "lucide-react";
+import { Pencil, MapPin, GraduationCap, Book, Trash } from "lucide-react";
 import Person from "../../assets/images/karachi-uni.png";
 
-const EducationCard = ({ education, onEdit }) => {
+const EducationCard = ({ education, onEdit, onDelete }) => {
   return (
     <div className="border border-[#000] rounded-lg p-6 bg-white relative shadow-sm">
-      {/* Edit button - positioned like in image */}
-      <button
-        onClick={() => onEdit && onEdit(education)}
-        className="absolute top-4 right-4 p-1.5 text-gray-500 hover:text-gray-600 rounded-full border border-gray-500 hover:border-gray-500 transition-colors"
-      >
-        <Pencil className="w-4 h-4" />
-      </button>
+      {/* Edit and Delete buttons - positioned like in image */}
+      <div className="absolute top-4 right-4 flex gap-2">
+        <button
+          onClick={() => onEdit && onEdit(education)}
+          className="p-1.5 text-gray-500 hover:text-gray-600 rounded-full border border-gray-500 hover:border-gray-500 transition-colors"
+        >
+          <Pencil className="w-4 h-4" />
+        </button>
+        <button
+          onClick={() => onDelete && onDelete(education)}
+          className="p-1.5 text-red-500 hover:text-red-600 rounded-full border border-red-500 hover:border-red-500 transition-colors"
+        >
+          <Trash className="w-4 h-4" />
+        </button>
+      </div>
 
       <div className="flex items-start gap-4">
         {/* University Logo - Green circle with white letter */}
@@ -62,9 +70,11 @@ const EducationCard = ({ education, onEdit }) => {
       </div>
       {/* Description */}
       {education.description && (
-        <p className="text-lg text-gray-700 leading-relaxed mt-2">
-          {education.description}
-        </p>
+        <div className="mt-2">
+          <p className="text-lg text-gray-700 leading-relaxed break-words whitespace-pre-line overflow-x-auto max-w-full">
+            {education.description}
+          </p>
+        </div>
       )}
     </div>
   );

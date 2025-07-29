@@ -1,18 +1,25 @@
 import React, { useState, useEffect } from "react";
-import { CirclePlus, Pencil, Plus } from "lucide-react";
+import { CirclePlus, Pencil, Plus, Trash } from "lucide-react";
 import OverviewModal from "./about_overview_tab";
 import AddEducation from "./add_education";
 import EducationCard from "./added_education_card";
-import AddCertificate from "./add_certificate"; 
-import CertificateCard from "./certificate_card"; 
+import AddCertificate from "./add_certificate";
+import CertificateCard from "./certificate_card";
 import AddSkill from "./add_skill";
 import SkillCard from "./added_skill_card";
+import DeleteModal from "./delete_modal";
 import axios from "axios";
+import ContactInfo from './ContactInfo';
 
 const ProfileAbout = () => {
   const [activeTab, setActiveTab] = useState("Overview");
   const [overviewText, setOverviewText] = useState("");
   const [showModal, setShowModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteModalData, setDeleteModalData] = useState({
+    type: "",
+    itemId: null,
+  });
   const [showEducation, setEducation] = useState(false);
   const [educationList, setEducationList] = useState([]);
   const [showAllEducation, setShowAllEducation] = useState(false);
@@ -45,8 +52,110 @@ const ProfileAbout = () => {
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const [loadingEducation, setLoadingEducation] = useState(false);
   const [loadingCertificates, setLoadingCertificates] = useState(false);
+  const [loadingSkills, setLoadingSkills] = useState(false);
 
-  // GET ABOUT OVERVIEW
+  // Function to fetch education data
+  const fetchEducation = async () => {
+    const userId = localStorage.getItem("user_id");
+    const token = localStorage.getItem("token");
+
+    if (!userId || !token) return;
+
+    setLoadingEducation(true);
+    try {
+      const res = await axios.get(`${API_BASE_URL}/about/education/${userId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      console.log("Education API Response:", res.data);
+      let data = res.data;
+      if (Array.isArray(data)) {
+        setEducationList(data);
+      } else if (Array.isArray(data.education)) {
+        setEducationList(data.education);
+      } else if (data.education) {
+        setEducationList([data.education]);
+      } else {
+        setEducationList([]);
+      }
+    } catch (error) {
+      console.error("Education fetch error:", error);
+      setEducationList([]);
+    } finally {
+      setLoadingEducation(false);
+    }
+  };
+
+  // Function to fetch certificates
+  const fetchCertificates = async () => {
+    const userId = localStorage.getItem("user_id");
+    const token = localStorage.getItem("token");
+
+    if (!userId || !token) return;
+
+    setLoadingCertificates(true);
+    try {
+      const res = await axios.get(
+        `${API_BASE_URL}/about/certification/${userId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      console.log("Certificates API Response:", res.data);
+      let data = res.data;
+      if (Array.isArray(data)) {
+        setCertificateList(data);
+      } else if (Array.isArray(data.certificates)) {
+        setCertificateList(data.certificates);
+      } else if (data.certificates) {
+        setCertificateList([data.certificates]);
+      } else {
+        setCertificateList([]);
+      }
+    } catch (error) {
+      console.error("Certificates fetch error:", error);
+      setCertificateList([]);
+    } finally {
+      setLoadingCertificates(false);
+    }
+  };
+
+  // Function to fetch skills
+  const fetchSkills = async () => {
+    const userId = localStorage.getItem("user_id");
+    const token = localStorage.getItem("token");
+
+    if (!userId || !token) return;
+
+    setLoadingSkills(true);
+    try {
+      const res = await axios.get(`${API_BASE_URL}/about/skills/${userId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      console.log("Skills API Response:", res.data);
+      let data = res.data;
+      if (Array.isArray(data)) {
+        setSkillList(data);
+      } else if (Array.isArray(data.skills)) {
+        setSkillList(data.skills);
+      } else if (data.skills) {
+        setSkillList([data.skills]);
+      } else {
+        setSkillList([]);
+      }
+    } catch (error) {
+      console.error("Skills fetch error:", error);
+      setSkillList([]);
+    } finally {
+      setLoadingSkills(false);
+    }
+  };
+
   useEffect(() => {
     const userId = localStorage.getItem("user_id");
     const token = localStorage.getItem("token");
@@ -71,64 +180,17 @@ const ProfileAbout = () => {
 
     // Education Tab
     if (activeTab === "Education") {
-      if (!userId || !token) return;
-      setLoadingEducation(true);
-      axios
-        .get(`${API_BASE_URL}/about/education/${userId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-        .then((res) => {
-          // console.log("Education API Response:", res.data); 
-          let data = res.data;
-          if (Array.isArray(data)) {
-            setEducationList(data);
-          } else if (Array.isArray(data.education)) {
-            setEducationList(data.education);
-          } else if (data.education) {
-            setEducationList([data.education]);
-          } else {
-            setEducationList([]);
-          }
-          setLoadingEducation(false);
-        })
-        .catch((error) => {
-          console.error("Education fetch error:", error); 
-          setEducationList([]);
-          setLoadingEducation(false);
-        });
+      fetchEducation();
+      fetchCertificates();
+    }
 
-      // Fetch Certificates
-      setLoadingCertificates(true);
-      axios
-        .get(`${API_BASE_URL}/about/certification/${userId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
-        .then((res) => {
-          console.log("Certificates API Response:", res.data); 
-          let data = res.data;
-          if (Array.isArray(data)) {
-            setCertificateList(data);
-          } else if (Array.isArray(data.certificates)) {
-            setCertificateList(data.certificates);
-          } else if (data.certificates) {
-            setCertificateList([data.certificates]);
-          } else {
-            setCertificateList([]);
-          }
-          setLoadingCertificates(false);
-        })
-        .catch((error) => {
-          console.error("Certificates fetch error:", error); 
-          setCertificateList([]);
-          setLoadingCertificates(false);
-        });
+    // Skill Tab
+    if (activeTab === "Skill") {
+      fetchSkills();
     }
   }, [activeTab, API_BASE_URL]);
 
+  // GET USER PROFILE
   useEffect(() => {
     const userId = localStorage.getItem("user_id");
     if (!userId) return;
@@ -138,44 +200,45 @@ const ProfileAbout = () => {
       .catch(() => setUserProfile(null));
   }, []);
 
+  // MODAL OPEN CLOSE FUNCTIONS
   useEffect(() => {
-    if (showModal || showEducation || showCertificate || showSkill) {
+    if (showModal || showEducation || showCertificate || showSkill || showDeleteModal) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "auto";
     }
-  }, [showModal, showEducation, showCertificate, showSkill]);
+  }, [showModal, showEducation, showCertificate, showSkill, showDeleteModal]);
 
   const tabs = ["Overview", "Education", "Skill", "Info"];
 
+  // SAVE EDUCATION
   const handleEducationSave = async (educationData) => {
     const userId = localStorage.getItem("user_id");
     const token = localStorage.getItem("token");
     if (!userId || !token) return;
 
     try {
-      let response;
-      if (isEditMode && editingEducation !== null && educationList[editingEducation]?.id) {
+      if (
+        isEditMode &&
+        editingEducation !== null &&
+        educationList[editingEducation]?.id
+      ) {
         // Edit mode: PUT request
         const educationId = educationList[editingEducation].id;
-        response = await axios.put(
+        await axios.put(
           `${API_BASE_URL}/about/education/${educationId}`,
           { ...educationData, user_id: userId },
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        setEducationList((prev) =>
-          prev.map((item, index) =>
-            index === editingEducation ? response.data.education || educationData : item
-          )
-        );
       } else {
-        response = await axios.post(
+        await axios.post(
           `${API_BASE_URL}/about/education`,
           { ...educationData, user_id: userId },
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        setEducationList((prev) => [...prev, response.data.education || educationData]);
       }
+      // Refresh education data after save
+      fetchEducation();
     } catch (error) {
       console.error("Error saving education:", error);
     } finally {
@@ -185,62 +248,59 @@ const ProfileAbout = () => {
     }
   };
 
+  // SAVE CERTIFICATE
   const handleCertificateSave = async (certificateData) => {
     const userId = localStorage.getItem("user_id");
     const token = localStorage.getItem("token");
     if (!userId || !token) return;
-
+  
     try {
-      let response;
+      const isEditing = isCertificateEditMode && editingCertificate !== null && certificateList[editingCertificate]?.id;
+      const certificateId = isEditing ? certificateList[editingCertificate].id : null;
       
-      // Create FormData for file upload
-      const formData = new FormData();
-      formData.append('title', certificateData.title);
-      formData.append('organization', certificateData.organization);
-      formData.append('start_year', certificateData.start_year);
-      formData.append('end_year', certificateData.end_year);
-      formData.append('description', certificateData.description || '');
-      formData.append('user_id', userId);
+      // Check if we have a new photo file
+      const hasNewPhoto = certificateData.certificate_photo instanceof File;
       
-      if (certificateData.certificate_photo) {
-        formData.append('certificate_photo', certificateData.certificate_photo);
-      }
-
-      if (isCertificateEditMode && editingCertificate !== null && certificateList[editingCertificate]?.id) {
-        // Edit mode: PUT request
-        const certificateId = certificateList[editingCertificate].id;
-        response = await axios.put(
-          `${API_BASE_URL}/about/certification/${certificateId}`,
-          formData,
-          { 
-            headers: { 
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'multipart/form-data'
-            } 
-          }
-        );
-        setCertificateList((prev) =>
-          prev.map((item, index) =>
-            index === editingCertificate ? response.data.certificate || certificateData : item
-          )
-        );
+      let requestData, headers;
+      
+      if (hasNewPhoto) {
+        // Use FormData for file upload
+        const formData = new FormData();
+        formData.append("title", certificateData.title || "");
+        formData.append("organization", certificateData.organization || "");
+        formData.append("start_year", certificateData.start_year || "");
+        formData.append("end_year", certificateData.end_year || "");
+        formData.append("description", certificateData.description || "");
+        formData.append("user_id", userId);
+        formData.append("certificate_photo", certificateData.certificate_photo);
+        
+        requestData = formData;
+        headers = { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" };
       } else {
-        response = await axios.post(
-          `${API_BASE_URL}/about/certification`,
-          formData,
-          { 
-            headers: { 
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'multipart/form-data'
-            } 
-          }
-        );
-        setCertificateList((prev) => [...prev, response.data.certificate || certificateData]);
+        // Use JSON for text-only data
+        requestData = {
+          title: certificateData.title,
+          organization: certificateData.organization,
+          start_year: certificateData.start_year,
+          end_year: certificateData.end_year,
+          description: certificateData.description,
+          user_id: userId
+        };
+        headers = { Authorization: `Bearer ${token}`, "Content-Type": "application/json" };
       }
+  
+      // Make API call
+      if (isEditing) {
+        await axios.put(`${API_BASE_URL}/about/certification/${certificateId}`, requestData, { headers });
+      } else {
+        await axios.post(`${API_BASE_URL}/about/certification`, requestData, { headers });
+      }
+  
+      fetchCertificates();
     } catch (error) {
       console.error("Error saving certificate:", error);
       if (error.response?.data?.errors) {
-        console.error("Validation errors:", error.response.data.errors);
+        alert("Validation errors: " + JSON.stringify(error.response.data.errors));
       }
     } finally {
       setCertificate(false);
@@ -287,17 +347,42 @@ const ProfileAbout = () => {
     setIsCertificateEditMode(false);
   };
 
-  const handleSkillSave = (skillData) => {
-    if (isSkillEditMode && editingSkill !== null) {
-      setSkillList((prev) =>
-        prev.map((item, idx) => (idx === editingSkill ? skillData : item))
-      );
-    } else {
-      setSkillList((prev) => [...prev, skillData]);
+  // SAVE SKILL
+  const handleSkillSave = async (skillData) => {
+    const userId = localStorage.getItem("user_id");
+    const token = localStorage.getItem("token");
+    if (!userId || !token) return;
+
+    try {
+      if (
+        isSkillEditMode &&
+        editingSkill !== null &&
+        skillList[editingSkill]?.id
+      ) {
+        const skillId = skillList[editingSkill].id;
+        await axios.put(
+          `${API_BASE_URL}/about/skills/${skillId}`,
+          { ...skillData, user_id: userId },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      } else {
+        await axios.post(
+          `${API_BASE_URL}/about/skills`,
+          { ...skillData, user_id: userId },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      }
+      fetchSkills();
+    } catch (error) {
+      console.error("Error saving skill:", error);
+      if (error.response?.data?.errors) {
+        console.error("Validation errors:", error.response.data.errors);
+      }
+    } finally {
+      setShowSkill(false);
+      setEditingSkill(null);
+      setIsSkillEditMode(false);
     }
-    setShowSkill(false);
-    setEditingSkill(null);
-    setIsSkillEditMode(false);
   };
 
   const handleAddSkill = () => {
@@ -360,6 +445,69 @@ const ProfileAbout = () => {
       });
   };
 
+  // UNIVERSAL DELETE MODAL OPENER
+  const openDeleteModal = (type, itemId = null) => {
+    setDeleteModalData({ type, itemId });
+    setShowDeleteModal(true);
+  };
+
+  // UNIVERSAL DELETE FUNCTION
+  const handleDeleteItem = (type, itemId = null) => {
+    const userId = localStorage.getItem("user_id");
+    const token = localStorage.getItem("token");
+    if (!userId || !token) return;
+
+    let url;
+    let successCallback;
+
+    switch (type) {
+      case "overview":
+        url = `${API_BASE_URL}/about/overview/${userId}`;
+        successCallback = () => {
+          setOverviewText("");
+          setShowDeleteModal(false);
+        };
+        break;
+      case "education":
+        url = `${API_BASE_URL}/about/education/${itemId}`;
+        successCallback = () => {
+          fetchEducation(); // Refresh education data after delete
+          setShowDeleteModal(false);
+        };
+        break;
+      case "certificate":
+        url = `${API_BASE_URL}/about/certification/${itemId}`;
+        successCallback = () => {
+          fetchCertificates(); // Refresh certificate data after delete
+          setShowDeleteModal(false);
+        };
+        break;
+      case "skill":
+        url = `${API_BASE_URL}/about/skills/${itemId}`;
+        successCallback = () => {
+          fetchSkills(); // Refresh skills data after delete
+          setShowDeleteModal(false);
+        };
+        break;
+      default:
+        console.error("Unknown delete type:", type);
+        return;
+    }
+
+    axios
+      .delete(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then(() => {
+        successCallback();
+      })
+      .catch((err) => {
+        console.error(`Error deleting ${type}:`, err);
+      });
+  };
+
   const renderContent = () => {
     switch (activeTab) {
       case "Overview":
@@ -369,15 +517,43 @@ const ProfileAbout = () => {
               Hello, I'm {userProfile?.name}.
             </h3>
             {loadingOverview ? (
-              <div>Loading...</div>
+              <div className="flex justify-center items-center py-10">
+                <svg
+                  className="animate-spin h-8 w-8 text-[#0017e7]"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                  ></path>
+                </svg>
+              </div>
             ) : overviewText ? (
               <div className="relative">
                 <p className="text-gray-700 text-lg font-sf whitespace-pre-line">
                   {overviewText}
                 </p>
+                {/* Swap the positions and styles of Edit and Delete buttons */}
+                <button
+                  onClick={() => openDeleteModal("overview")}
+                  className="absolute -top-10 border rounded-full border-[#ff4d4f] right-0 p-2 text-red-500 hover:text-red-700"
+                >
+                  <Trash className="w-4 h-4" />
+                </button>
                 <button
                   onClick={() => setShowModal(true)}
-                  className="absolute -top-10 border rounded-full border-[#707070] right-0 p-2 text-gray-500 hover:text-gray-700"
+                  className="absolute -top-10 border rounded-full border-[#707070] right-12 p-2 text-gray-500 hover:text-gray-700"
                 >
                   <Pencil className="w-4 h-4" />
                 </button>
@@ -401,7 +577,28 @@ const ProfileAbout = () => {
         return (
           <div className="space-y-4">
             {loadingEducation || loadingCertificates ? (
-              <div>Loading...</div>
+              <div className="flex justify-center items-center py-10">
+                <svg
+                  className="animate-spin h-8 w-8 text-[#0017e7]"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                  ></path>
+                </svg>
+              </div>
             ) : (
               <>
                 {/* Education heading - Show above Add Education box when entries exist */}
@@ -417,8 +614,8 @@ const ProfileAbout = () => {
                     Add Education
                   </h3>
                   <p className="text-gray-600 text-sm mb-4 font-sf">
-                    Show your academic background to build trust with employers or
-                    clients.
+                    Show your academic background to build trust with employers
+                    or clients.
                   </p>
                   <button
                     onClick={handleAddEducation}
@@ -441,6 +638,9 @@ const ProfileAbout = () => {
                         key={index}
                         education={education}
                         onEdit={() => handleEducationEdit(education, index)}
+                        onDelete={() =>
+                          openDeleteModal("education", education.id)
+                        }
                       />
                     ))}
 
@@ -493,13 +693,18 @@ const ProfileAbout = () => {
                         key={index}
                         certificate={certificate}
                         onEdit={() => handleCertificateEdit(certificate, index)}
+                        onDelete={() =>
+                          openDeleteModal("certificate", certificate.id)
+                        }
                       />
                     ))}
 
                     {/* Show More/Show Less button only if there are more than 1 certificate entries */}
                     {certificateList.length > 1 && (
                       <button
-                        onClick={() => setShowAllCertificates(!showAllCertificates)}
+                        onClick={() =>
+                          setShowAllCertificates(!showAllCertificates)
+                        }
                         className="mt-5 text-[#000] font-sf text-sm px-4 py-2 border border-black rounded-md hover:bg-gray-50 transition-colors"
                       >
                         {showAllCertificates ? "Show Less" : "Show More"}
@@ -514,369 +719,77 @@ const ProfileAbout = () => {
       case "Skill":
         return (
           <div className="space-y-4">
-            <div className="border border-[#000] rounded-lg p-6 bg-gray-50">
-              <h3 className="text-lg font-sf font-semibold text-gray-900 mb-2">
-                Add Skill
-              </h3>
-              <p className="text-gray-600 text-sm mb-4 font-sf">
-                Show your skills to build trust with employers or clients.
-              </p>
-              <button
-                onClick={handleAddSkill}
-                className="bg-[#0017e7] mt-7 font-sf text-white px-4 py-2 rounded-md text-sm hover:bg-[#0013bf] transition-colors flex items-center gap-2"
-              >
-                <Plus className="w-5 h-5" />
-                Add Skill
-              </button>
-            </div>
-            {skillList.length > 0 && (
-              <div className="space-y-2">
-                {skillList.map((skill, idx) => (
-                  <SkillCard
-                    key={idx}
-                    skill={skill}
-                    onEdit={() => handleSkillEdit(skill, idx)}
-                  />
-                ))}
+            {loadingSkills ? (
+              <div className="flex justify-center items-center py-10">
+                <svg
+                  className="animate-spin h-8 w-8 text-[#0017e7]"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                  ></path>
+                </svg>
               </div>
+            ) : (
+              <>
+                {/* Skill heading - Show above Add Skill box when entries exist */}
+                {skillList.length > 0 && (
+                  <h2 className="text-2xl font-sf font-semibold text-gray-900 mb-4">
+                    Skills
+                  </h2>
+                )}
+
+                {/* Add Skill Box */}
+                <div className="border border-[#000] rounded-lg p-6 bg-gray-50">
+                  <h3 className="text-lg font-sf font-semibold text-gray-900 mb-2">
+                    Add Skill
+                  </h3>
+                  <p className="text-gray-600 text-sm mb-4 font-sf">
+                    Show your skills to build trust with employers or clients.
+                  </p>
+                  <button
+                    onClick={handleAddSkill}
+                    className="bg-[#0017e7] mt-7 font-sf text-white px-4 py-2 rounded-md text-sm hover:bg-[#0013bf] transition-colors flex items-center gap-2"
+                  >
+                    <Plus className="w-5 h-5" />
+                    Add Skill
+                  </button>
+                </div>
+
+                {/* Show added skill entries */}
+                {skillList.length > 0 && (
+                  <div className="space-y-2">
+                    {skillList.map((skill, idx) => (
+                      <SkillCard
+                        key={idx}
+                        skill={skill}
+                        onEdit={() => handleSkillEdit(skill, idx)}
+                        onDelete={() =>
+                          openDeleteModal("skill", skill.id)
+                        }
+                      />
+                    ))}
+                  </div>
+                )}
+              </>
             )}
           </div>
         );
       case "Info":
         return (
-          <div className="space-y-8 -mt-5">
-            {/* Contact & Email */}
-            <div className="flex items-start w-full gap-20">
-              <div>
-                {/* Contact */}
-                <div className="font-sf font-semibold text-2xl mb-1">
-                  Contact
-                </div>
-                <div className="flex items-center text-gray-700 mt-3">
-                  <span className="mr-2">
-                    <svg
-                      width="20"
-                      height="20"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.5"
-                      viewBox="0 0 24 24"
-                      className="text-[#4c4c4c]"
-                    >
-                      <path d="M2 3.5C2 3.224 2.224 3 2.5 3H6.25C6.388 3 6.519 3.056 6.612 3.153L8.862 5.471C9.044 5.663 9.048 5.963 8.871 6.162L7.21 8.03a.25.25 0 0 0-.02.306A12.002 12.002 0 0 0 15.664 16.81a.25.25 0 0 0 .306-.02l1.868-1.662a.25.25 0 0 1 .307-.02l2.317 2.25a.75.75 0 0 1 .238.557V21.5a.5.5 0 0 1-.5.5h-.001C9.798 22 2 14.202 2 4.5V3.5Z" />
-                    </svg>
-                  </span>
-                  <span className="font-sf text-base font-medium text-[#636363]">
-                    +92 300 1234567
-                  </span>
-                </div>
-              </div>
-              <div className="flex-1">
-                {/* Email */}
-                <div className="font-sf font-semibold text-2xl mb-1">Email</div>
-                <div className="flex items-center text-gray-700 mt-3">
-                  <span className="mr-2">
-                    <svg
-                      width="20"
-                      height="20"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      viewBox="0 0 24 24"
-                      className="text-[#4c4c4c]"
-                    >
-                      <path d="M2 5.5A2.5 2.5 0 0 1 4.5 3h15A2.5 2.5 0 0 1 22 5.5v13a2.5 2.5 0 0 1-2.5 2.5h-15A2.5 2.5 0 0 1 2 18.5v-13Z" />
-                      <path d="M2 7l10 6 10-6" />
-                    </svg>
-                  </span>
-                  <span className="font-sf text-base font-medium text-[#636363]">
-                    ransom.design@email.com
-                  </span>
-                </div>
-              </div>
-              <div className="flex items-center ml-auto mr-5">
-                <button className="p-1.5 text-gray-500 hover:text-gray-600 rounded-full border border-gray-500 hover:border-gray-500 transition-colors">
-                  <Pencil className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-
-            {/* Languages Spoken */}
-            <div>
-              <div className="flex items-center mb-1">
-                <div className="font-sf font-semibold text-2xl">
-                  Languages Spoken
-                </div>
-                {languages.length > 0 && !showLanguageInput && (
-                  <button
-                    className="p-1.5 text-gray-500 hover:text-gray-600 rounded-full border border-gray-500 hover:border-gray-500 transition-colors ml-auto"
-                    onClick={handleAddLanguageClick}
-                  >
-                    <Pencil className="w-4 h-4" />
-                  </button>
-                )}
-              </div>
-              {showLanguageInput ? (
-                <div className="flex items-center gap-2 mt-1">
-                  <input
-                    type="text"
-                    className="border border-[#5a5a5a] rounded px-3 py-2 font-sf w-[40%]"
-                    placeholder="Add Language"
-                    value={languageInput}
-                    onChange={(e) => setLanguageInput(e.target.value)}
-                  />
-                  <button
-                    onClick={handleSaveLanguage}
-                    className="bg-[#0017e7] text-white px-8 py-2 rounded font-sf"
-                  >
-                    Save
-                  </button>
-                </div>
-              ) : (
-                <button
-                  className="flex items-center text-[#0017e7] font-sf font-medium text-lg mt-3 hover:text-[#0013bf] transition-colors"
-                  onClick={handleAddLanguageClick}
-                >
-                  <CirclePlus className="w-7 h-7 mr-1" />
-                  Add Language
-                </button>
-              )}
-              <div className="mt-2">
-                {languages.map((lang, idx) => (
-                  <div key={idx} className="flex items-center gap-2 mt-3">
-                    <span>
-                      <svg
-                        width="25"
-                        height="25"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        viewBox="0 0 24 24"
-                        className="text-[#636363]"
-                      >
-                        <circle cx="12" cy="12" r="10" />
-                        <path d="M2 12h20M12 2a15.3 15.3 0 0 1 0 20M12 2a15.3 15.3 0 0 0 0 20" />
-                      </svg>
-                    </span>
-                    <span className="font-sf text-md text-[#636363] text-md font-medium">
-                      {lang}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Website and social link */}
-            <div>
-              <div className="font-sf font-semibold text-2xl mb-1">
-                Website and social link
-              </div>
-              <div className="flex flex-col gap-2 mt-1">
-                {/* Website Links */}
-                {websiteLinks.length > 0 && (
-                  <div className="mb-2">
-                    <div className="font-sf text-base font-medium text-gray-700 mb-1">
-                      Website link
-                    </div>
-                    {websiteLinks.map((link, idx) => (
-                      <div key={idx} className="flex items-center gap-2 mb-1">
-                        <span>{renderWebsiteIcon(link)}</span>
-                        <a
-                          href={link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-[#0017e7] underline truncate max-w-xs block"
-                        >
-                          {link}
-                        </a>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {showWebsiteInput ? (
-                  <div className="flex items-center gap-2 mt-1">
-                    <input
-                      type="text"
-                      className="border border-[#5a5a5a] rounded px-3 py-2 font-sf w-[40%]"
-                      placeholder="Add website link"
-                      value={websiteInput}
-                      onChange={(e) => setWebsiteInput(e.target.value)}
-                    />
-                    <button
-                      onClick={() => {
-                        if (websiteInput.trim() !== "") {
-                          setWebsiteLinks([
-                            ...websiteLinks,
-                            websiteInput.trim(),
-                          ]);
-                        }
-                        setShowWebsiteInput(false);
-                        setWebsiteInput("");
-                      }}
-                      className="bg-[#0017e7] text-white px-8 py-2 rounded font-sf"
-                    >
-                      Save
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    className="flex mt-3 items-center text-lg text-[#0017e7] font-sf font-medium hover:text-[#0013bf] transition-colors"
-                    onClick={() => setShowWebsiteInput(true)}
-                  >
-                    <CirclePlus className="w-7 h-7 mr-1" />
-                    Add a website
-                  </button>
-                )}
-                {/* Social Links */}
-                {socialLinks.length > 0 && (
-                  <div className="mb-2">
-                    <div className="font-sf text-base font-medium text-gray-700 mb-1">
-                      Social link
-                    </div>
-                    <div className="flex flex-wrap gap-6">
-                      {socialLinks.map((link, idx) => (
-                        <div key={idx} className="flex items-center gap-2 mb-1">
-                          <span>{renderSocialIcon(link)}</span>
-                          <a
-                            href={link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-[#0017e7] underline truncate max-w-xs block"
-                          >
-                            {link}
-                          </a>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                {showSocialInput ? (
-                  <div className="flex items-center gap-2 mt-1">
-                    <input
-                      type="text"
-                      className="border border-[#5a5a5a] rounded px-3 py-2 font-sf w-[40%]"
-                      placeholder="Add social link"
-                      value={socialInput}
-                      onChange={(e) => setSocialInput(e.target.value)}
-                    />
-                    <button
-                      onClick={() => {
-                        if (socialInput.trim() !== "") {
-                          setSocialLinks([...socialLinks, socialInput.trim()]);
-                        }
-                        setShowSocialInput(false);
-                        setSocialInput("");
-                      }}
-                      className="bg-[#0017e7] text-white px-8 py-2 rounded font-sf"
-                    >
-                      Save
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    className="flex mt-3 items-center text-lg text-[#0017e7] font-sf font-medium hover:text-[#0013bf] transition-colors"
-                    onClick={() => setShowSocialInput(true)}
-                  >
-                    <CirclePlus className="w-7 h-7 mr-1" />
-                    Add a social link
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* Gender & Date of Birth */}
-            <div className="flex gap-20">
-              <div>
-                <div className="font-sf font-semibold text-2xl mb-1">
-                  Gender
-                </div>
-                {gender && !showGenderInput ? (
-                  <div className="flex items-center mt-3">
-                    <span className="font-sf text-md text-[#636363] font-medium mr-2">
-                      {gender}
-                    </span>
-                    <button
-                      className="p-1.5 text-gray-500 hover:text-gray-600 rounded-full border border-gray-500 hover:border-gray-500 transition-colors ml-2"
-                      onClick={() => setShowGenderInput(true)}
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </button>
-                  </div>
-                ) : showGenderInput ? (
-                  <div className="flex items-center gap-2 mt-3">
-                    <select
-                      className="border border-[#5a5a5a] rounded px-3 py-2 font-sf"
-                      value={gender}
-                      onChange={(e) => setGender(e.target.value)}
-                    >
-                      <option value="">Select Gender</option>
-                      <option value="Male">Male</option>
-                      <option value="Female">Female</option>
-                      <option value="Other">Other</option>
-                      <option value="Prefer not to say">
-                        Prefer not to say
-                      </option>
-                    </select>
-                    <button
-                      onClick={() => setShowGenderInput(false)}
-                      className="bg-[#0017e7] text-white px-8 py-2 rounded font-sf"
-                    >
-                      Save
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    className="flex items-center text-[#0017e7] font-sf font-medium  mt-3 hover:text-[#0013bf] transition-colors"
-                    onClick={() => setShowGenderInput(true)}
-                  >
-                    <CirclePlus className="w-7 h-7 mr-1" />
-                    Add Gender
-                  </button>
-                )}
-              </div>
-              <div>
-                <div className="font-sf font-semibold text-2xl mb-1">
-                  Date of Birth
-                </div>
-                {dob && !showDobInput ? (
-                  <div className="flex items-center mt-3">
-                    <span className="font-sf text-md text-[#636363] font-medium mr-2">
-                      {dob}
-                    </span>
-                    <button
-                      className="p-1.5 text-gray-500 hover:text-gray-600 rounded-full border border-gray-500 hover:border-gray-500 transition-colors ml-2"
-                      onClick={() => setShowDobInput(true)}
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </button>
-                  </div>
-                ) : showDobInput ? (
-                  <div className="flex items-center gap-2 mt-3">
-                    <input
-                      type="date"
-                      className="border border-[#5a5a5a] rounded px-3 py-2 font-sf"
-                      value={dob}
-                      onChange={(e) => setDob(e.target.value)}
-                    />
-                    <button
-                      onClick={() => setShowDobInput(false)}
-                      className="bg-[#0017e7] text-white px-8 py-2 rounded font-sf"
-                    >
-                      Save
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    className="flex items-center text-[#0017e7] font-sf font-medium  mt-3  hover:text-[#0013bf] transition-colors"
-                    onClick={() => setShowDobInput(true)}
-                  >
-                    <CirclePlus className="w-7 h-7 mr-1" />
-                    Add Date of Birth
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
+          <ContactInfo userId={localStorage.getItem("user_id")} />
         );
       default:
         return null;
@@ -957,68 +870,17 @@ const ProfileAbout = () => {
         onClose={handleCloseSkillModal}
         onSave={handleSkillSave}
       />
+
+      <DeleteModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onDelete={() =>
+          handleDeleteItem(deleteModalData.type, deleteModalData.itemId)
+        }
+        type={deleteModalData.type}
+      />
     </div>
   );
 };
-
-function renderWebsiteIcon(link) {
-  return (
-    <img
-      src={`https://www.google.com/s2/favicons?domain_url=${encodeURIComponent(
-        link
-      )}&sz=32`}
-      alt="website"
-      className="w-6 h-6"
-    />
-  );
-}
-
-function renderSocialIcon(link) {
-  // Return the correct icon based on the link
-  if (link.includes("facebook.com")) {
-    return (
-      <img
-        src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/2023_Facebook_icon.svg/2048px-2023_Facebook_icon.svg.png"
-        alt="fb"
-        className="w-6 h-6"
-      />
-    );
-  }
-  if (link.includes("instagram.com")) {
-    return (
-      <img
-        src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTpNPYBLb6Z4PIJSlr6qXbUy8VZ0w2w4BPPVQ&s"
-        alt="instagram"
-        className="w-6 h-6"
-      />
-    );
-  }
-  if (link.includes("linkedin.com")) {
-    return (
-      <img
-        src="https://i.pinimg.com/736x/b2/f8/28/b2f828513f21444829a619ce563d4d4e.jpg"
-        alt="linkedin"
-        className="w-6 h-6"
-      />
-    );
-  }
-  if (link.includes("x.com") || link.includes("twitter.com")) {
-    return (
-      <img
-        src="https://img.freepik.com/premium-vector/x-rounded-icon_1144215-148.jpg"
-        alt="x"
-        className="w-6 h-6"
-      />
-    );
-  }
-  // fallback generic icon
-  return (
-    <img
-      src="https://cdn-icons-png.flaticon.com/512/7046/7046086.png"
-      alt="link"
-      className="w-6 h-6"
-    />
-  );
-}
 
 export default ProfileAbout;

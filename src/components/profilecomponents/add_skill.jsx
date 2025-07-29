@@ -13,6 +13,8 @@ const AddSkillForm = ({
     description: "",
   });
 
+  const [error, setError] = useState("");
+
   useEffect(() => {
     if (isOpen) {
       if (initialData) {
@@ -24,6 +26,7 @@ const AddSkillForm = ({
           description: "",
         });
       }
+      setError(""); // Reset error on open
     }
   }, [isOpen, initialData]);
 
@@ -32,9 +35,19 @@ const AddSkillForm = ({
       ...prev,
       [field]: value,
     }));
+    setError(""); // Clear error on input change
   };
 
   const handleSave = () => {
+    // Check for empty fields
+    const emptyField = Object.entries(formData).find(
+      ([key, value]) => value.trim() === ""
+    );
+    if (emptyField) {
+      setError("Please fill all fields.");
+      return;
+    }
+    setError("");
     onSave(formData);
   };
 
@@ -60,11 +73,20 @@ const AddSkillForm = ({
           </button>
         </div>
 
+        {/* Error Message */}
+        {error && (
+          <div className="px-4 pt-3">
+            <div className="bg-red-100 text-red-700 rounded px-3 py-2 text-sm font-sf">
+              {error}
+            </div>
+          </div>
+        )}
+
         {/* Form Content */}
-        <div className="p-4 space-y-4 mt-3">
+        <div className="p-4 space-y-4 mt-1">
           {/* Skill Name */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1 font-sf">
+            <label className="block text-sm text-[#707070] font-medium mb-1 font-sf">
               Skill
             </label>
             <input
@@ -78,14 +100,14 @@ const AddSkillForm = ({
 
           {/* Skill Proficiency */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1 font-sf ">
+            <label className="block text-sm font-medium text-[#707070] mb-1 font-sf ">
               Skill Proficiency
             </label>
             <div className="relative">
               <select
                 value={formData.proficiency}
                 onChange={(e) => handleInputChange("proficiency", e.target.value)}
-                className="w-full font-sf border border-gray-300 rounded-md px-3 py-2 text-sm cursor-pointer appearance-none pr-8"
+                className="w-full font-sf  border border-gray-300 rounded-md px-3 py-2 text-sm cursor-pointer appearance-none pr-8"
               >
                 <option value="">Select proficiency</option>
                 <option value="Beginner">Beginner</option>
@@ -113,7 +135,7 @@ const AddSkillForm = ({
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1 font-sf">
+            <label className="block text-sm font-medium text-[#707070] mb-1 font-sf">
               Description
             </label>
             <textarea

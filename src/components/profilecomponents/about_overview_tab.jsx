@@ -25,7 +25,7 @@ const About_overview_tab = ({ isOpen, onClose, onSave, initialText = "" }) => {
         </h2>
 
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2 font-sf">
+          <label className="block text-sm font-medium text-[#707070] mb-2 font-sf">
             Description
           </label>
           <textarea

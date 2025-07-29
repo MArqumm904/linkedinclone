@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Pencil, X } from "lucide-react";
+import { Pencil, X, Trash } from "lucide-react";
 
-const CertificateCard = ({ certificate, onEdit }) => {
+const CertificateCard = ({ certificate, onEdit, onDelete }) => {
   const [showCertificate, setShowCertificate] = useState(false);
   const [imageUrl, setImageUrl] = useState(null);
+
+  console.log(certificate);
+  
 
   useEffect(() => {
     if (showCertificate) {
@@ -40,13 +43,21 @@ const CertificateCard = ({ certificate, onEdit }) => {
   return (
     <>
       <div className="border border-[#000] rounded-lg p-6 bg-white hover:shadow-sm transition-shadow relative mt-5">
-        {/* Edit Button */}
-        <button
-          onClick={onEdit}
-          className="absolute top-4 right-4 p-1.5 text-gray-500 hover:text-gray-600 rounded-full border border-gray-500 hover:border-gray-500 transition-colors"
-        >
-          <Pencil className="w-4 h-4" />
-        </button>
+        {/* Edit and Delete Buttons - side by side in top right */}
+        <div className="absolute top-4 right-4 flex gap-2">
+          <button
+            onClick={onEdit}
+            className="p-1.5 text-gray-500 hover:text-gray-600 rounded-full border border-gray-500 hover:border-gray-500 transition-colors"
+          >
+            <Pencil className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => onDelete && onDelete(certificate)}
+            className="p-1.5 text-red-500 hover:text-red-600 rounded-full border border-red-500 hover:border-red-500 transition-colors"
+          >
+            <Trash className="w-4 h-4" />
+          </button>
+        </div>
 
         {/* Certificate Content */}
         <div className="pr-12">

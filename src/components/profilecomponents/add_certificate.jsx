@@ -20,6 +20,7 @@ const AddCertificate = ({
   const [uploadedFile, setUploadedFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (isOpen) {
@@ -27,11 +28,17 @@ const AddCertificate = ({
         setFormData(initialData);
         setUploadedFile(initialData.certificate_photo);
         // If initial data has an image, set preview
-        if (initialData.certificate_photo && typeof initialData.certificate_photo === 'object') {
+        if (
+          initialData.certificate_photo &&
+          typeof initialData.certificate_photo === "object"
+        ) {
           const reader = new FileReader();
           reader.onload = (e) => setImagePreview(e.target.result);
           reader.readAsDataURL(initialData.certificate_photo);
-        } else if (initialData.certificate_photo && typeof initialData.certificate_photo === 'string') {
+        } else if (
+          initialData.certificate_photo &&
+          typeof initialData.certificate_photo === "string"
+        ) {
           // If it's a URL from API
           setImagePreview(initialData.certificate_photo);
         }
@@ -48,6 +55,7 @@ const AddCertificate = ({
         setImagePreview(null);
         setShowPreview(false);
       }
+      setError(""); // Reset error on open
     }
   }, [isOpen, initialData]);
 
@@ -56,6 +64,7 @@ const AddCertificate = ({
       ...prev,
       [field]: value,
     }));
+    setError(""); // Clear error on input change
   };
 
   const handleFileUpload = (event) => {
@@ -67,7 +76,7 @@ const AddCertificate = ({
         certificate_photo: file,
       }));
 
-      if (file.type.startsWith('image/')) {
+      if (file.type.startsWith("image/")) {
         const reader = new FileReader();
         reader.onload = (e) => {
           setImagePreview(e.target.result);
@@ -77,15 +86,30 @@ const AddCertificate = ({
         setImagePreview(null);
       }
     }
+    setError(""); // Clear error on file upload
   };
 
   const handleSave = () => {
-    // Validate required fields
-    if (!formData.title || !formData.organization || !formData.start_year || !formData.end_year || !uploadedFile) {
-      alert("Please fill all required fields including certificate photo");
+    // Check for empty fields
+    const requiredFields = [
+      "title",
+      "organization",
+      "start_year",
+      "end_year",
+      "description",
+    ];
+    const emptyField = requiredFields.find(
+      (field) =>
+        formData[field] === "" ||
+        formData[field] === null ||
+        (typeof formData[field] === "string" && formData[field].trim() === "")
+    );
+    if (emptyField || !uploadedFile) {
+      setError("Please fill all fields including certificate photo.");
       return;
     }
 
+    setError("");
     const dataToSave = {
       ...formData,
       certificate_photo: uploadedFile,
@@ -118,11 +142,20 @@ const AddCertificate = ({
           </button>
         </div>
 
+        {/* Error Message */}
+        {error && (
+          <div className="px-4 pt-3">
+            <div className="bg-red-100 text-red-700 rounded px-3 py-2 text-sm font-sf">
+              {error}
+            </div>
+          </div>
+        )}
+
         {/* Form Content */}
         <div className="p-4 space-y-4">
           {/* Title */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1 font-sf">
+            <label className="block text-sm font-medium text-[#707070] mb-1 font-sf">
               Title
             </label>
             <div className="relative">
@@ -141,7 +174,7 @@ const AddCertificate = ({
 
           {/* Conferring Organization */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1 font-sf">
+            <label className="block text-sm font-medium text-[#707070] mb-1 font-sf">
               Conferring Organization
             </label>
             <div className="relative">
@@ -163,34 +196,60 @@ const AddCertificate = ({
           {/* Start Date and End Date */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1 font-sf">
+              <label className="block text-sm font-medium text-[#707070] mb-1 font-sf">
                 Start Year
               </label>
-              <input
-                type="number"
-                value={formData.start_year}
-                onChange={(e) => handleInputChange("start_year", parseInt(e.target.value) || "")}
-                placeholder="2023"
-                className="w-full font-sf border border-gray-300 rounded-md px-3 py-2 text-sm"
-              />
+              <select
+                value={formData.start_year || ""}
+                onChange={(e) =>
+                  handleInputChange(
+                    "start_year",
+                    e.target.value === "" ? "" : parseInt(e.target.value)
+                  )
+                }
+                className="w-full font-sf border border-gray-300 rounded-md px-3 py-2 text-sm cursor-pointer appearance-none pr-8"
+              >
+                <option value="">Select year</option>
+                {Array.from({ length: 50 }, (_, i) => {
+                  const year = new Date().getFullYear() - i;
+                  return (
+                    <option key={year} value={year}>
+                      {year}
+                    </option>
+                  );
+                })}
+              </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1 font-sf">
+              <label className="block text-sm font-medium text-[#707070] mb-1 font-sf">
                 End Year
               </label>
-              <input
-                type="number"
-                value={formData.end_year}
-                onChange={(e) => handleInputChange("end_year", parseInt(e.target.value) || "")}
-                placeholder="2024"
-                className="w-full border font-sf border-gray-300 rounded-md px-3 py-2 text-sm"
-              />
+              <select
+                value={formData.end_year || ""}
+                onChange={(e) =>
+                  handleInputChange(
+                    "end_year",
+                    e.target.value === "" ? "" : parseInt(e.target.value)
+                  )
+                }
+                className="w-full font-sf border border-gray-300 rounded-md px-3 py-2 text-sm cursor-pointer appearance-none pr-8"
+              >
+                <option value="">Select year</option>
+                {Array.from({ length: 50 }, (_, i) => {
+                  const year = new Date().getFullYear() - i + 1;
+                  return (
+                    <option key={year} value={year}>
+                      {year}
+                    </option>
+                  );
+                })}
+              </select>
             </div>
           </div>
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1 font-sf">
+            <label className="block text-sm font-medium text-[#707070] mb-1 font-sf">
               Description
             </label>
             <textarea
@@ -204,24 +263,26 @@ const AddCertificate = ({
 
           {/* Upload Certificate */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2 font-sf">
+            <label className="block text-sm font-medium text-[#707070] mb-2 font-sf">
               Upload Certificate
             </label>
-            <div 
+            <div
               className="border-2 border-dashed border-gray-300 rounded-md p-6 text-center relative overflow-hidden"
               style={{
-                backgroundImage: imagePreview ? `url(${imagePreview})` : 'none',
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                backgroundRepeat: 'no-repeat',
-                backgroundPosition: 'top'
+                backgroundImage: imagePreview
+                  ? `url(${imagePreview})`
+                  : "none",
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+                backgroundRepeat: "no-repeat",
+                backgroundPosition: "top",
               }}
             >
               {/* Dark overlay when image is present */}
               {imagePreview && (
                 <div className="absolute inset-0 bg-black bg-opacity-40 rounded-md"></div>
               )}
-              
+
               <input
                 type="file"
                 id="certificate-upload"
@@ -229,7 +290,7 @@ const AddCertificate = ({
                 onChange={handleFileUpload}
                 className="hidden"
               />
-              
+
               {!imagePreview ? (
                 <label
                   htmlFor="certificate-upload"
@@ -238,7 +299,7 @@ const AddCertificate = ({
                   <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center mb-2">
                     <Upload className="w-5 h-5 text-gray-500" />
                   </div>
-                  <span className="text-sm text-blue-600 font-medium hover:text-blue-700 font-sf">
+                  <span className="text-sm text-[#0017e2] font-medium hover:text-[#0016c4] font-sf">
                     Upload Photo
                   </span>
                 </label>
@@ -262,7 +323,10 @@ const AddCertificate = ({
 
             {/* Image Preview Modal */}
             {showPreview && imagePreview && (
-              <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[60]" onClick={() => setShowPreview(false)}>
+              <div
+                className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[60]"
+                onClick={() => setShowPreview(false)}
+              >
                 <div className="relative max-w-4xl max-h-[90vh] p-4">
                   <button
                     onClick={() => setShowPreview(false)}
@@ -285,7 +349,7 @@ const AddCertificate = ({
         <div className="flex items-center gap-2 p-4 border-t border-gray-200">
           <button
             onClick={handleSave}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md text-sm font-medium transition-colors font-sf"
+            className="bg-[#0017e2] hover:bg-[#0016c40016c4] text-white px-6 py-2 rounded-md text-sm font-medium transition-colors font-sf"
           >
             {isEditMode ? "Update Certification" : "Save Certification"}
           </button>
