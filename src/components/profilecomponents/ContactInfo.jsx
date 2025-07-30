@@ -27,6 +27,24 @@ const ContactInfo = ({ userId }) => {
   const [showEmailInput, setShowEmailInput] = useState(false);
   const [emailInput, setEmailInput] = useState("");
 
+  // Edit states
+  const [editingContact, setEditingContact] = useState(false);
+  const [editingEmail, setEditingEmail] = useState(false);
+  const [editingLanguageIndex, setEditingLanguageIndex] = useState(-1);
+  const [editingWebsiteIndex, setEditingWebsiteIndex] = useState(-1);
+  const [editingSocialIndex, setEditingSocialIndex] = useState(-1);
+  const [editingGender, setEditingGender] = useState(false);
+  const [editingDob, setEditingDob] = useState(false);
+
+  // Edit input values
+  const [editContactValue, setEditContactValue] = useState("");
+  const [editEmailValue, setEditEmailValue] = useState("");
+  const [editLanguageValue, setEditLanguageValue] = useState("");
+  const [editWebsiteValue, setEditWebsiteValue] = useState("");
+  const [editSocialValue, setEditSocialValue] = useState("");
+  const [editGenderValue, setEditGenderValue] = useState("");
+  const [editDobValue, setEditDobValue] = useState("");
+
   useEffect(() => {
     if (!userId) return;
     setLoading(true);
@@ -84,13 +102,13 @@ const ContactInfo = ({ userId }) => {
       const token = localStorage.getItem("token");
       
       // Console log the data being sent to backend
-      console.log("=== DEBUG: Data being sent to backend ===");
-      console.log("Field:", field);
-      console.log("Value:", value);
-      console.log("Value type:", typeof value);
-      console.log("Is Array:", Array.isArray(value));
-      console.log("Full request body:", { [field]: value });
-      console.log("========================================");
+      // console.log("=== DEBUG: Data being sent to backend ===");
+      // console.log("Field:", field);
+      // console.log("Value:", value);
+      // console.log("Value type:", typeof value);
+      // console.log("Is Array:", Array.isArray(value));
+      // console.log("Full request body:", { [field]: value });
+      // console.log("========================================");
       
       await axios.put(
         `${API_BASE_URL}/about/info/${infoId}`,
@@ -106,8 +124,8 @@ const ContactInfo = ({ userId }) => {
       if (field === "gender") setGender(value);
       if (field === "date_of_birth") setDob(value);
     } catch (error) {
-      console.error("Error updating info:", error);
-      console.error("Error response:", error.response?.data);
+      // console.error("Error updating info:", error);
+      // console.error("Error response:", error.response?.data);
       alert("Failed to update info!");
     }
   };
@@ -133,7 +151,7 @@ const ContactInfo = ({ userId }) => {
     if (languageInput.trim() !== "") {
       const updatedLanguages = [...languages, languageInput.trim()];
       // Console log the value being sent to backend for languages
-      console.log("Sending languages_spoken to backend:", updatedLanguages);
+      // console.log("Sending languages_spoken to backend:", updatedLanguages);
       handleUpdateInfo("languages_spoken", updatedLanguages);
       setLanguages(updatedLanguages);
     }
@@ -177,6 +195,111 @@ const ContactInfo = ({ userId }) => {
       handleUpdateInfo("date_of_birth", dob);
     }
     setShowDobInput(false);
+  };
+
+  // Edit handlers
+  const handleEditContact = () => {
+    setEditContactValue(contact);
+    setEditingContact(true);
+  };
+
+  const handleSaveEditContact = () => {
+    if (editContactValue.trim() !== "") {
+      handleUpdateInfo("contact", editContactValue.trim());
+      setContact(editContactValue.trim());
+    }
+    setEditingContact(false);
+    setEditContactValue("");
+  };
+
+  const handleEditEmail = () => {
+    setEditEmailValue(email);
+    setEditingEmail(true);
+  };
+
+  const handleSaveEditEmail = () => {
+    if (editEmailValue.trim() !== "") {
+      handleUpdateInfo("email", editEmailValue.trim());
+      setEmail(editEmailValue.trim());
+    }
+    setEditingEmail(false);
+    setEditEmailValue("");
+  };
+
+  const handleEditLanguage = (index, value) => {
+    setEditLanguageValue(value);
+    setEditingLanguageIndex(index);
+  };
+
+  const handleSaveEditLanguage = () => {
+    if (editLanguageValue.trim() !== "") {
+      const updatedLanguages = [...languages];
+      updatedLanguages[editingLanguageIndex] = editLanguageValue.trim();
+      handleUpdateInfo("languages_spoken", updatedLanguages);
+      setLanguages(updatedLanguages);
+    }
+    setEditingLanguageIndex(-1);
+    setEditLanguageValue("");
+  };
+
+  const handleEditWebsite = (index, value) => {
+    setEditWebsiteValue(value);
+    setEditingWebsiteIndex(index);
+  };
+
+  const handleSaveEditWebsite = () => {
+    if (editWebsiteValue.trim() !== "") {
+      const updatedWebsites = [...websiteLinks];
+      updatedWebsites[editingWebsiteIndex] = editWebsiteValue.trim();
+      handleUpdateInfo("website", updatedWebsites);
+      setWebsiteLinks(updatedWebsites);
+    }
+    setEditingWebsiteIndex(-1);
+    setEditWebsiteValue("");
+  };
+
+  const handleEditSocial = (index, value) => {
+    setEditSocialValue(value);
+    setEditingSocialIndex(index);
+  };
+
+  const handleSaveEditSocial = () => {
+    if (editSocialValue.trim() !== "") {
+      const updatedSocials = [...socialLinks];
+      updatedSocials[editingSocialIndex] = editSocialValue.trim();
+      handleUpdateInfo("social_link", updatedSocials);
+      setSocialLinks(updatedSocials);
+    }
+    setEditingSocialIndex(-1);
+    setEditSocialValue("");
+  };
+
+  const handleEditGender = () => {
+    setEditGenderValue(gender);
+    setEditingGender(true);
+  };
+
+  const handleSaveEditGender = () => {
+    if (editGenderValue.trim() !== "") {
+      handleUpdateInfo("gender", editGenderValue);
+      setGender(editGenderValue);
+    }
+    setEditingGender(false);
+    setEditGenderValue("");
+  };
+
+  const handleEditDob = () => {
+    setEditDobValue(dob);
+    setEditingDob(true);
+  };
+
+  const handleSaveEditDob = () => {
+    if (editDobValue.trim() !== "") {
+      handleUpdateInfo("date_of_birth", editDobValue);
+      setDob(editDobValue);
+    }
+    setEditingDob(false);
+    setEditDobValue("");
   };
 
   function renderWebsiteIcon(link) {
@@ -271,28 +394,46 @@ const ContactInfo = ({ userId }) => {
           <div className="font-sf font-semibold text-2xl mb-1">Contact</div>
           <div className="flex items-center text-gray-700 mt-3">
             {contact ? (
-              <span className="font-sf text-base font-medium text-[#636363] flex items-center">
-                <span className="ml-2 mr-4">
-                  <svg
-                    width="20"
-                    height="20"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    viewBox="0 0 24 24"
-                    className="text-[#4c4c4c]"
+              editingContact ? (
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    className="border border-[#5a5a5a] rounded px-3 py-2 font-sf w-[60%]"
+                    placeholder="Edit Contact"
+                    value={editContactValue}
+                    onChange={(e) => setEditContactValue(e.target.value)}
+                  />
+                  <button
+                    onClick={handleSaveEditContact}
+                    className="bg-[#0017e7] text-white px-8 py-2 rounded font-sf"
                   >
-                    <path d="M2 3.5C2 3.224 2.224 3 2.5 3H6.25C6.388 3 6.519 3.056 6.612 3.153L8.862 5.471C9.044 5.663 9.048 5.963 8.871 6.162L7.21 8.03a.25.25 0 0 0-.02.306A12.002 12.002 0 0 0 15.664 16.81a.25.25 0 0 0 .306-.02l1.868-1.662a.25.25 0 0 1 .307-.02l2.317 2.25a.75.75 0 0 1 .238.557V21.5a.5.5 0 0 1-.5.5h-.001C9.798 22 2 14.202 2 4.5V3.5Z" />
-                  </svg>
+                    Save
+                  </button>
+                </div>
+              ) : (
+                <span className="font-sf text-base font-medium text-[#636363] flex items-center">
+                  <span className="ml-2 mr-4">
+                    <svg
+                      width="20"
+                      height="20"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      viewBox="0 0 24 24"
+                      className="text-[#4c4c4c]"
+                    >
+                      <path d="M2 3.5C2 3.224 2.224 3 2.5 3H6.25C6.388 3 6.519 3.056 6.612 3.153L8.862 5.471C9.044 5.663 9.048 5.963 8.871 6.162L7.21 8.03a.25.25 0 0 0-.02.306A12.002 12.002 0 0 0 15.664 16.81a.25.25 0 0 0 .306-.02l1.868-1.662a.25.25 0 0 1 .307-.02l2.317 2.25a.75.75 0 0 1 .238.557V21.5a.5.5 0 0 1-.5.5h-.001C9.798 22 2 14.202 2 4.5V3.5Z" />
+                    </svg>
+                  </span>
+                  {contact}
+                  <button
+                    className="ml-2 p-1.5 text-gray-500 hover:text-gray-600 rounded-full border border-gray-500 hover:border-gray-500 transition-colors"
+                    onClick={handleEditContact}
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </button>
                 </span>
-                {contact}
-                <button
-                  className="ml-2 p-1.5 text-gray-500 hover:text-gray-600 rounded-full border border-gray-500 hover:border-gray-500 transition-colors"
-                  onClick={() => setShowContactInput(true)}
-                >
-                  <Pencil className="w-4 h-4" />
-                </button>
-              </span>
+              )
             ) : (
               showContactInput ? (
                 <div className="flex items-center gap-2">
@@ -340,17 +481,37 @@ const ContactInfo = ({ userId }) => {
                 <path d="M2 7l10 6 10-6" />
               </svg>
             </span>
-            <span className="font-sf text-base font-medium text-[#636363]">
-              {email || (
-                <span className="text-[#0017e7] cursor-pointer">Add Email</span>
-              )}
-              <button
-                className="ml-2 p-1.5 text-gray-500 hover:text-gray-600 rounded-full border border-gray-500 hover:border-gray-500 transition-colors"
-                onClick={() => setShowEmailInput(true)}
-              >
-                <Pencil className="w-4 h-4" />
-              </button>
-            </span>
+            {editingEmail ? (
+              <div className="flex items-center gap-2">
+                <input
+                  type="email"
+                  className="border border-[#5a5a5a] rounded px-3 py-2 font-sf w-[60%]"
+                  placeholder="Edit Email"
+                  value={editEmailValue}
+                  onChange={(e) => setEditEmailValue(e.target.value)}
+                />
+                <button
+                  onClick={handleSaveEditEmail}
+                  className="bg-[#0017e7] text-white px-8 py-2 rounded font-sf"
+                >
+                  Save
+                </button>
+              </div>
+            ) : (
+              <span className="font-sf text-base font-medium text-[#636363] flex items-center">
+                {email || (
+                  <span className="text-[#0017e7] cursor-pointer">Add Email</span>
+                )}
+                {email && (
+                  <button
+                    className="ml-2 p-1.5 text-gray-500 hover:text-gray-600 rounded-full border border-gray-500 hover:border-gray-500 transition-colors"
+                    onClick={handleEditEmail}
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </button>
+                )}
+              </span>
+            )}
           </div>
         </div>
         <div className="flex items-center ml-auto mr-5">
@@ -402,23 +563,63 @@ const ContactInfo = ({ userId }) => {
           {languages.map((lang, idx) => (
             lang.split(',').map((language, i) => (
               <div key={i} className="flex items-center gap-2 mt-3">
-                <span>
-                  <svg
-                    width="25"
-                    height="25"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    viewBox="0 0 24 24"
-                    className="text-[#636363]"
-                  >
-                    <circle cx="12" cy="12" r="10" />
-                    <path d="M2 12h20M12 2a15.3 15.3 0 0 1 0 20M12 2a15.3 15.3 0 0 0 0 20" />
-                  </svg>
-                </span>
-                <span className="font-sf text-md text-[#636363] font-medium">
-                  {language.trim()}
-                </span>
+                {editingLanguageIndex === idx ? (
+                  <div className="flex items-center gap-2 w-full">
+                    <span>
+                      <svg
+                        width="25"
+                        height="25"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        viewBox="0 0 24 24"
+                        className="text-[#636363]"
+                      >
+                        <circle cx="12" cy="12" r="10" />
+                        <path d="M2 12h20M12 2a15.3 15.3 0 0 1 0 20M12 2a15.3 15.3 0 0 0 0 20" />
+                      </svg>
+                    </span>
+                    <input
+                      type="text"
+                      className="border border-[#5a5a5a] rounded px-3 py-2 font-sf w-[40%]"
+                      placeholder="Edit Language"
+                      value={editLanguageValue}
+                      onChange={(e) => setEditLanguageValue(e.target.value)}
+                    />
+                    <button
+                      onClick={handleSaveEditLanguage}
+                      className="bg-[#0017e7] text-white px-8 py-2 rounded font-sf"
+                    >
+                      Save
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <span>
+                      <svg
+                        width="25"
+                        height="25"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        viewBox="0 0 24 24"
+                        className="text-[#636363]"
+                      >
+                        <circle cx="12" cy="12" r="10" />
+                        <path d="M2 12h20M12 2a15.3 15.3 0 0 1 0 20M12 2a15.3 15.3 0 0 0 0 20" />
+                      </svg>
+                    </span>
+                    <span className="font-sf text-md text-[#636363] font-medium">
+                      {language.trim()}
+                    </span>
+                    <button
+                      className="p-1.5 text-gray-500 hover:text-gray-600 rounded-full border border-gray-500 hover:border-gray-500 transition-colors"
+                      onClick={() => handleEditLanguage(idx, language.trim())}
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                  </>
+                )}
               </div>
             ))
           ))}
@@ -439,15 +640,42 @@ const ContactInfo = ({ userId }) => {
               </div>
               {websiteLinks.map((link, idx) => (
                 <div key={idx} className="flex items-center gap-2 mb-1">
-                  <span>{renderWebsiteIcon(link)}</span>
-                  <a
-                    href={link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[#0017e7] underline truncate max-w-xs block"
-                  >
-                    {link}
-                  </a>
+                  {editingWebsiteIndex === idx ? (
+                    <div className="flex items-center gap-2 w-full">
+                      <span>{renderWebsiteIcon(link)}</span>
+                      <input
+                        type="text"
+                        className="border border-[#5a5a5a] rounded px-3 py-2 font-sf w-[40%]"
+                        placeholder="Edit website link"
+                        value={editWebsiteValue}
+                        onChange={(e) => setEditWebsiteValue(e.target.value)}
+                      />
+                      <button
+                        onClick={handleSaveEditWebsite}
+                        className="bg-[#0017e7] text-white px-8 py-2 rounded font-sf"
+                      >
+                        Save
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <span>{renderWebsiteIcon(link)}</span>
+                      <a
+                        href={link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[#0017e7] underline truncate max-w-xs block"
+                      >
+                        {link}
+                      </a>
+                      <button
+                        className="p-1.5 text-gray-500 hover:text-gray-600 rounded-full border border-gray-500 hover:border-gray-500 transition-colors"
+                        onClick={() => handleEditWebsite(idx, link)}
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                    </>
+                  )}
                 </div>
               ))}
             </div>
@@ -487,15 +715,42 @@ const ContactInfo = ({ userId }) => {
                 {socialLinks.map((link, idx) =>
                   link.split(',').map((singleLink, i) => (
                     <div key={`${idx}-${i}`} className="flex items-center gap-2 mb-1">
-                      <span>{renderSocialIcon(singleLink.trim())}</span>
-                      <a
-                        href={singleLink.trim()}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-[#0017e7] underline truncate max-w-xs block"
-                      >
-                        {singleLink.trim()}
-                      </a>
+                      {editingSocialIndex === idx ? (
+                        <div className="flex items-center gap-2 w-full">
+                          <span>{renderSocialIcon(singleLink.trim())}</span>
+                          <input
+                            type="text"
+                            className="border border-[#5a5a5a] rounded px-3 py-2 font-sf w-[510px]"
+                            placeholder="Edit social link"
+                            value={editSocialValue}
+                            onChange={(e) => setEditSocialValue(e.target.value)}
+                          />
+                          <button
+                            onClick={handleSaveEditSocial}
+                            className="bg-[#0017e7] text-white px-8 py-2 rounded font-sf"
+                          >
+                            Save
+                          </button>
+                        </div>
+                      ) : (
+                        <>
+                          <span>{renderSocialIcon(singleLink.trim())}</span>
+                          <a
+                            href={singleLink.trim()}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[#0017e7] underline truncate max-w-xs block"
+                          >
+                            {singleLink.trim()}
+                          </a>
+                          <button
+                            className="p-1.5 text-gray-500 hover:text-gray-600 rounded-full border border-gray-500 hover:border-gray-500 transition-colors"
+                            onClick={() => handleEditSocial(idx, singleLink.trim())}
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </button>
+                        </>
+                      )}
                     </div>
                   ))
                 )}
@@ -529,24 +784,46 @@ const ContactInfo = ({ userId }) => {
           )}
         </div>
       </div>
-
+      
       {/* Gender & Date of Birth */}
       <div className="flex gap-20">
         <div>
           <div className="font-sf font-semibold text-2xl mb-1">Gender</div>
           {gender && !showGenderInput ? (
-            <div className="flex items-center mt-3">
-              <User className="w-6 h-6 text-[#636363] mr-2 mb-1" />
-              <span className="font-sf text-md text-[#636363] font-medium mr-2">
-                {gender}
-              </span>
-              <button
-                className="p-1.5 text-gray-500 hover:text-gray-600 rounded-full border border-gray-500 hover:border-gray-500 transition-colors ml-2"
-                onClick={() => setShowGenderInput(true)}
-              >
-                <Pencil className="w-4 h-4" />
-              </button>
-            </div>
+            editingGender ? (
+              <div className="flex items-center gap-2 mt-3">
+                <select
+                  className="border border-[#5a5a5a] rounded px-3 py-2 font-sf"
+                  value={editGenderValue}
+                  onChange={(e) => setEditGenderValue(e.target.value)}
+                >
+                  <option value="">Select Gender</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                  <option value="Prefer not to say">Prefer not to say</option>
+                </select>
+                <button
+                  onClick={handleSaveEditGender}
+                  className="bg-[#0017e7] text-white px-8 py-2 rounded font-sf"
+                >
+                  Save
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center mt-3">
+                <User className="w-6 h-6 text-[#636363] mr-2 mb-1" />
+                <span className="font-sf text-md text-[#636363] font-medium mr-2">
+                  {gender}
+                </span>
+                <button
+                  className="p-1.5 text-gray-500 hover:text-gray-600 rounded-full border border-gray-500 hover:border-gray-500 transition-colors ml-2"
+                  onClick={handleEditGender}
+                >
+                  <Pencil className="w-4 h-4" />
+                </button>
+              </div>
+            )
           ) : showGenderInput ? (
             <div className="flex items-center gap-2 mt-3">
               <select
@@ -582,18 +859,35 @@ const ContactInfo = ({ userId }) => {
             Date of Birth
           </div>
           {dob && !showDobInput ? (
-            <div className="flex items-center mt-3">
-              <Cake className="w-6 h-6 text-[#636363] mr-2 mb-1" />
-              <span className="font-sf text-md text-[#636363] font-medium">
-                {dob}
-              </span>
-              <button
-                className="p-1.5 text-gray-500 hover:text-gray-600 rounded-full border border-gray-500 hover:border-gray-500 transition-colors ml-2"
-                onClick={() => setShowDobInput(true)}
-              >
-                <Pencil className="w-4 h-4" />
-              </button>
-            </div>
+            editingDob ? (
+              <div className="flex items-center gap-2 mt-3">
+                <input
+                  type="date"
+                  className="border border-[#5a5a5a] rounded px-3 py-2 font-sf"
+                  value={editDobValue}
+                  onChange={(e) => setEditDobValue(e.target.value)}
+                />
+                <button
+                  onClick={handleSaveEditDob}
+                  className="bg-[#0017e7] text-white px-8 py-2 rounded font-sf"
+                >
+                  Save
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center mt-3">
+                <Cake className="w-6 h-6 text-[#636363] mr-2 mb-1" />
+                <span className="font-sf text-md text-[#636363] font-medium">
+                  {dob}
+                </span>
+                <button
+                  className="p-1.5 text-gray-500 hover:text-gray-600 rounded-full border border-gray-500 hover:border-gray-500 transition-colors ml-2"
+                  onClick={handleEditDob}
+                >
+                  <Pencil className="w-4 h-4" />
+                </button>
+              </div>
+            )
           ) : showDobInput ? (
             <div className="flex items-center gap-2 mt-3">
               <input

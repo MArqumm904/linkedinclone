@@ -11,6 +11,7 @@ import Pages from "./pages/pages";
 import Browse from "./pages/browse";
 import Profile from "./pages/profile";
 import CheckLoginOrNot from "./pages/CheckLoginOrNot";
+import Preloader from "./components/preloader/Preloader";
 import "./App.css";
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/preloader" element={<Preloader />} />
         <Route path="/" element={<CheckLoginOrNot><Home /></CheckLoginOrNot>} />
         <Route path="/friends" element={<CheckLoginOrNot><Friends /></CheckLoginOrNot>} />
         <Route path="/notifications" element={<CheckLoginOrNot><Notifications /></CheckLoginOrNot>} />

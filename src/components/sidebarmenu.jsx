@@ -14,10 +14,15 @@ import Fiverr from "../assets/images/fiverr.jpg";
 import Yahoo from "../assets/images/yahoo.jpg";
 import { CirclePlus } from "lucide-react";
 import PostCreate from "../components/createpost_text";
+import GroupCreate from "../components/groupscomp/create_group_modal";
+import PageCreate from "../components/groupscomp/create_page_modal";
 
 const SidebarMenu = () => {
   const navigate = useNavigate();
   const [showPostCreatePopup, setShowPostCreatePopup] = useState(false);
+  const [showGroupCreatePopup, setShowGroupCreatePopup] = useState(false);
+  const [showPageCreatePopup, setShowPageCreatePopup] = useState(false);
+
   const onBackToHome = () => {
     navigate("/friends");
   };
@@ -33,13 +38,20 @@ const SidebarMenu = () => {
   const Gotopages = () => {
     navigate("/pages");
   };
+  const handleGroupCreate = () => {
+    setShowGroupCreatePopup(true);
+  };
+  const handlePageCreate = () => {
+    setShowPageCreatePopup(true);
+  };
+
   useEffect(() => {
-    if (showPostCreatePopup) {
+    if (showPostCreatePopup || showGroupCreatePopup || showPageCreatePopup) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "auto";
     }
-  }, [showPostCreatePopup]);
+  }, [showPostCreatePopup, showGroupCreatePopup, showPageCreatePopup]);
   const menuItems = [
     { icon: Message, label: "Messages", count: 2, bgColor: "bg-[#ff0000]" },
     {
@@ -88,6 +100,12 @@ const SidebarMenu = () => {
       {showPostCreatePopup && (
         <PostCreate onClose={() => setShowPostCreatePopup(false)} />
       )}
+      {showGroupCreatePopup && (
+        <GroupCreate isOpen={showGroupCreatePopup} onClose={() => setShowGroupCreatePopup(false)} />
+      )}
+      {showPageCreatePopup && (
+        <PageCreate isOpen={showPageCreatePopup} onClose={() => setShowPageCreatePopup(false)} />
+      )}
       {/* Main Menu */}
       <div className="bg-white rounded-lg shadow-sm border border-[#6974b1] p-2 mb-4">
         {menuItems.map((item, index) => {
@@ -122,7 +140,7 @@ const SidebarMenu = () => {
 
       {/* Create Group Button */}
       <div className="bg-white rounded-lg shadow-sm border border-[#6974b1] p-2 mb-3">
-        <div className="flex items-center p-3 hover:bg-gray-50 cursor-pointer rounded-lg transition-colors">
+        <div className="flex items-center p-3 hover:bg-gray-50 cursor-pointer rounded-lg transition-colors" onClick={handleGroupCreate}>
           <div className="mr-3">
             <CirclePlus className="font-sf w-7 h-7 text-[#0017e7]" />
           </div>
@@ -132,7 +150,7 @@ const SidebarMenu = () => {
         </div>
       </div>
       <div className="bg-white rounded-lg shadow-sm border border-[#6974b1] p-2 mb-3">
-        <div className="flex items-center p-3 hover:bg-gray-50 cursor-pointer rounded-lg transition-colors">
+        <div className="flex items-center p-3 hover:bg-gray-50 cursor-pointer rounded-lg transition-colors" onClick={handlePageCreate}>
           <div className="mr-3">
             <CirclePlus className="font-sf w-7 h-7 text-[#0017e7]" />
           </div>
