@@ -13,9 +13,11 @@ import axios from "axios";
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const EditProfile = ({ onClose, currentProfilePhoto, onProfileUpdate }) => {
-  const [selectedImage, setSelectedImage] = useState(currentProfilePhoto || null);
+  const [selectedImage, setSelectedImage] = useState(
+    currentProfilePhoto || null
+  );
   const [originalFile, setOriginalFile] = useState(null);
-  const [currentStep, setCurrentStep] = useState(currentProfilePhoto ? 2 : 1); 
+  const [currentStep, setCurrentStep] = useState(currentProfilePhoto ? 2 : 1);
   const [zoom, setZoom] = useState(1);
   const [rotation, setRotation] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
@@ -30,7 +32,7 @@ const EditProfile = ({ onClose, currentProfilePhoto, onProfileUpdate }) => {
     if (file) {
       // Store the original file
       setOriginalFile(file);
-      
+
       const reader = new FileReader();
       reader.onload = (e) => {
         setSelectedImage(e.target.result);
@@ -62,7 +64,6 @@ const EditProfile = ({ onClose, currentProfilePhoto, onProfileUpdate }) => {
 
   const handleDeleteImage = async () => {
     if (currentProfilePhoto) {
-      // If there was a previous profile photo, we need to remove it from the database
       setIsLoading(true);
       const userId = localStorage.getItem("user_id");
       const token = localStorage.getItem("token");
@@ -75,21 +76,20 @@ const EditProfile = ({ onClose, currentProfilePhoto, onProfileUpdate }) => {
 
       try {
         const formData = new FormData();
-        formData.append('profile_photo', ''); // Send empty string to remove photo
+        formData.append("delete_photo", "true");
 
         const response = await axios.put(
           `${API_BASE_URL}/user/profile/${userId}`,
           formData,
           {
             headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'multipart/form-data',
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "multipart/form-data",
             },
           }
         );
 
         if (response.data) {
-          // Call the callback to update the parent component
           if (onProfileUpdate) {
             onProfileUpdate(null);
           }
@@ -123,62 +123,46 @@ const EditProfile = ({ onClose, currentProfilePhoto, onProfileUpdate }) => {
     const token = localStorage.getItem("token");
 
     if (!userId || !token) {
-      console.error("User not authenticated");
       setIsLoading(false);
       return;
     }
 
     try {
       const formDataToSend = new FormData();
+      let fileToSend;
 
-      let imageBlob;
-      
       if (originalFile) {
-        imageBlob = originalFile;
-      } else if (selectedImage && selectedImage.startsWith("data:")) {
-        const response = await fetch(selectedImage);
-        imageBlob = await response.blob();
+        fileToSend = originalFile;
       } else if (selectedImage instanceof File) {
-        imageBlob = selectedImage;
+        fileToSend = selectedImage;
       } else {
         const response = await fetch(selectedImage);
-        imageBlob = await response.blob();
+        const blob = await response.blob();
+        fileToSend = new File([blob], "profile_photo.jpg", { type: blob.type });
       }
 
-      if (imageBlob && imageBlob.size > 0) {
-        formDataToSend.append("profile_photo", imageBlob, imageBlob.name || "profile.jpg");
-        
-        console.log("FormData to be sent:");
-        console.log("profile_photo", `(Blob: type=${imageBlob.type}, size=${imageBlob.size}, name=${imageBlob.name || "profile.jpg"})`);
-        console.log("API URL:", `${API_BASE_URL}/user/profile/${userId}`);
-        console.log("User ID:", userId);
-        
-        const response = await axios.put(
+      if (fileToSend && fileToSend.size > 0) {
+        formDataToSend.append("profile_photo", fileToSend);
+
+        const response = await axios.post(
           `${API_BASE_URL}/user/profile/${userId}`,
           formDataToSend,
           {
             headers: {
-              "Content-Type": "multipart/form-data",
               Authorization: `Bearer ${token}`,
             },
           }
         );
 
-        if (response.data) {
-          if (onProfileUpdate) {
-            onProfileUpdate(selectedImage);
-          }
-          onClose();
+        if (response.data && onProfileUpdate) {
+          onProfileUpdate(selectedImage);
         }
+
+        onClose();
       } else {
         throw new Error("Invalid image data");
       }
     } catch (error) {
-      console.error("Error updating profile photo:", error);
-      console.error("Error response:", error.response?.data);
-      console.error("Error status:", error.response?.status);
-      console.error("Error headers:", error.response?.headers);
-      console.error("Request config:", error.config);
       alert("Failed to update profile photo. Please try again.");
     } finally {
       setIsLoading(false);
@@ -236,7 +220,7 @@ const EditProfile = ({ onClose, currentProfilePhoto, onProfileUpdate }) => {
               >
                 {isLoading ? "Saving..." : "Save"}
               </button>
-              <button 
+              <button
                 onClick={handleCropImage}
                 disabled={!selectedImage}
                 className="border-black flex bg-gray-200 text-black px-6 py-1 rounded-md hover:bg-gray-300 transition-colors border disabled:opacity-50 disabled:cursor-not-allowed"
