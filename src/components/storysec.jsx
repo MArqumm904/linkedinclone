@@ -2,82 +2,21 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Camera, Type, Plus, X } from 'lucide-react';
 import PostStory from './homecomponents/poststory';
 import StoryViewer from './homecomponents/storyviewer';
+import { stories } from '../data/storiesData';
 
 const Stories = () => {
   const [showStoryTypeModal, setShowStoryTypeModal] = useState(false);
   const [showStoryCreator, setShowStoryCreator] = useState(false);
   const [showStoryViewer, setShowStoryViewer] = useState(false);
   const [currentStoryIndex, setCurrentStoryIndex] = useState(0);
-  const [viewingOwnStory, setViewingOwnStory] = useState(false);
-  const [storyType, setStoryType] = useState(''); // 'photo' or 'text'
+  const [storyType, setStoryType] = useState(''); 
   const [selectedImage, setSelectedImage] = useState(null);
   const [textBoxes, setTextBoxes] = useState([]);
   const [draggedText, setDraggedText] = useState(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const fileInputRef = useRef(null);
 
-  // Sample user stories data
-  const userStories = [
-    {
-      name: "Your Story",
-      avatar: "../assets/images/person-1.png",
-      timeAgo: "2h ago",
-      type: "image",
-      content: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=600&fit=crop",
-      views: 25,
-      background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
-    },
-    {
-      name: "Your Story",
-      avatar: "../assets/images/person-1.png",
-      timeAgo: "5h ago",
-      type: "text",
-      content: "",
-      views: 18,
-      background: "linear-gradient(135deg, #FEE140 0%, #FA709A 100%)",
-      textElements: [
-        {
-          text: "GERMANIYADAGI",
-          color: "white",
-          fontSize: "20px"
-        },
-        {
-          text: "BEPUL",
-          color: "white",
-          fontSize: "32px"
-        },
-        {
-          text: "UNIVERSITETLAR",
-          color: "white",
-          fontSize: "16px"
-        }
-      ]
-    }
-  ];
-
-  const stories = [
-    {
-      name: "Your Story",
-      avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=64&h=64&fit=crop&crop=face",
-      isYour: true,
-    },
-    {
-      name: "Archimedes",
-      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=64&h=64&fit=crop&crop=face",
-    },
-    {
-      name: "jahved singh",
-      avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=64&h=64&fit=crop&crop=face",
-    },
-    {
-      name: "Coderlytics",
-      avatar: "https://images.unsplash.com/photo-1519244703995-f4e0f30006d5?w=64&h=64&fit=crop&crop=face",
-    },
-    {
-      name: "ArjitDesigns",
-      avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=64&h=64&fit=crop&crop=face",
-    },
-  ];
+  
 
   const handleYourStoryClick = (e) => {
     e.stopPropagation();
@@ -85,15 +24,8 @@ const Stories = () => {
   };
 
   const handleStoryClick = (index) => {
-    if (stories[index].isYour) {
-      setViewingOwnStory(true);
-      setCurrentStoryIndex(0);
-      setShowStoryViewer(true);
-    } else {
-      setViewingOwnStory(false);
-      setCurrentStoryIndex(index);
-      setShowStoryViewer(true);
-    }
+    setCurrentStoryIndex(index);
+    setShowStoryViewer(true);
   };
 
   const handleStoryTypeSelect = (type) => {
@@ -169,7 +101,6 @@ const Stories = () => {
     }
   };
 
-  // Add this useEffect in your Stories component
   useEffect(() => {
     if (showStoryCreator || showStoryTypeModal || showStoryViewer) {
       document.body.classList.add('overflow-hidden');
@@ -203,7 +134,6 @@ const Stories = () => {
 
   const closeStoryViewer = () => {
     setShowStoryViewer(false);
-    setViewingOwnStory(false);
     setCurrentStoryIndex(0);
   };
 
@@ -212,19 +142,11 @@ const Stories = () => {
       <div className="bg-white rounded-lg shadow border border-[#6974b1] p-5 mb-4">
         <div className="flex space-x-7 overflow-x-auto ms-2">
           {stories.map((story, index) => (
-            <div key={index} className="flex-shrink-0 text-center">
+            <div key={story.id} className="flex-shrink-0 text-center">
               <div className="relative cursor-pointer">
                 <div
-                  className={`w-14 h-14 rounded-full overflow-hidden border-2 p-0.5 ${story.isYour ? "border-gray-400" : "border-blue-500"
-                    }`}
-                  onClick={(e) => {
-                    if (story.isYour) {
-                      handleStoryClick(index);
-                    } else {
-                      e.preventDefault(); // Prevent any action
-                      e.stopPropagation(); // Stop event bubbling
-                    }
-                  }}
+                  className={`w-14 h-14 rounded-full overflow-hidden border-2 p-0.5 ${story.isYour ? "border-gray-400" : "border-blue-500"}`}
+                  onClick={() => handleStoryClick(index)}
                 >
                   <img
                     src={story.avatar}
@@ -251,7 +173,7 @@ const Stories = () => {
 
       {/* Story Type Selection Modal */}
       {showStoryTypeModal && (
-        <div className="fixed-inset bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-gray-100 p-8 rounded-lg max-w-md w-full mx-4">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-lg font-semibold">Create Story</h2>
@@ -288,12 +210,10 @@ const Stories = () => {
 
       {/* Story Viewer */}
       <StoryViewer
-        className="fixed-inset"
         isOpen={showStoryViewer}
         onClose={closeStoryViewer}
         stories={stories}
         currentStoryIndex={currentStoryIndex}
-        currentUserStories={viewingOwnStory ? userStories : null}
       />
 
       {/* Story Creator */}

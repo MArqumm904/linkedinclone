@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Volume2, Play, Pause, MoreHorizontal, Trash2, Eye } from 'lucide-react';
-import ViewersModal from './viewersmodal'; // Import the ViewersModal component
-import { viewersData } from './viewersData'; // Import the viewers data
+import ViewersModal from './viewersmodal'; 
+import { viewersData } from './viewersData'; 
 import avator from "../../assets/images/person-1.png"
 import volumn from "../../assets/images/volume.png"
 import pause from "../../assets/images/pause.png"
