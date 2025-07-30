@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
-import RouteLoader from "../components/preloader/RouteLoader";
+import Preloader from "../components/preloader/Preloader";
 
 const ProtectedRoute = ({ children }) => {
   const [isAuth, setIsAuth] = useState(null);
@@ -21,7 +21,7 @@ const ProtectedRoute = ({ children }) => {
       .catch(() => setIsAuth(false));
   }, []);
 
-  if (isAuth === null) return <RouteLoader />;
+  if (isAuth === null) return <Preloader />;
   if (!isAuth) return <Navigate to="/login" replace />;
   return children;
 };

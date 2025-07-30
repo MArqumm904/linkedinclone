@@ -90,6 +90,7 @@ const Profile = () => {
 
   const [showeditcoverPopup, setShoweditcoverPopup] = useState(false);
   const [showeditprofilePopup, setShoweditprofilePopup] = useState(false);
+  const [currentProfilePhoto, setCurrentProfilePhoto] = useState(null);
   const [showeditintroPopup, setShoweditintroPopup] = useState(false);
   const [showreqmemPopup, setShowreqmemPopup] = useState(false);
   const [showBadgesModal, setShowBadgesModal] = useState(false);
@@ -171,7 +172,12 @@ const Profile = () => {
     if (!userId) return;
     fetch(`${import.meta.env.VITE_API_BASE_URL}/user/profile/${userId}`)
       .then((res) => res.json())
-      .then((data) => setUserProfile(data.user))
+      .then((data) => {
+        setUserProfile(data.user);
+        if (data.user && data.user.profile && data.user.profile.profile_photo) {
+          setCurrentProfilePhoto(data.user.profile.profile_photo);
+        }
+      })
       .catch(() => setUserProfile(null));
   }, []);
 
@@ -249,7 +255,21 @@ const Profile = () => {
         <EditCover onClose={() => setShoweditcoverPopup(false)} />
       )}
       {showeditprofilePopup && (
-        <EditProfile onClose={() => setShoweditprofilePopup(false)} />
+        <EditProfile 
+          onClose={() => setShoweditprofilePopup(false)} 
+          currentProfilePhoto={currentProfilePhoto}
+          onProfileUpdate={(newPhoto) => {
+            setCurrentProfilePhoto(newPhoto);
+            // Update the userProfile state as well
+            setUserProfile(prev => ({
+              ...prev,
+              profile: {
+                ...prev.profile,
+                profile_photo: newPhoto
+              }
+            }));
+          }}
+        />
       )}
       {showeditintroPopup && (
         <EditIntro onClose={() => setShoweditintroPopup(false)} />
@@ -307,7 +327,7 @@ const Profile = () => {
                   <div className="relative -mt-16 mb-4">
                     <div className="w-32 h-32 rounded-full border-4 border-white bg-white overflow-hidden">
                       <img
-                        src={userProfile && userProfile.profile && userProfile.profile.profile_photo ? userProfile.profile.profile_photo : Person1}
+                          src={currentProfilePhoto || (userProfile && userProfile.profile && userProfile.profile.profile_photo) || "https://cdn.pixabay.com/photo/2023/02/18/11/00/icon-7797704_640.png"}
                         alt="Profile"
                         className="w-full h-full object-cover"
                       />

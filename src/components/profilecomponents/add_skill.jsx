@@ -18,7 +18,12 @@ const AddSkillForm = ({
   useEffect(() => {
     if (isOpen) {
       if (initialData) {
-        setFormData(initialData);
+        // Ensure all values are strings to prevent validation issues
+        setFormData({
+          skill: initialData.skill || "",
+          proficiency: initialData.proficiency || "",
+          description: initialData.description || "",
+        });
       } else {
         setFormData({
           skill: "",
@@ -40,11 +45,13 @@ const AddSkillForm = ({
 
   const handleSave = () => {
     // Check for empty fields
-    const emptyField = Object.entries(formData).find(
-      ([key, value]) => value.trim() === ""
+    const emptyFields = Object.entries(formData).filter(
+      ([key, value]) => !value || (typeof value === 'string' && value.trim() === "")
     );
-    if (emptyField) {
-      setError("Please fill all fields.");
+    
+    if (emptyFields.length > 0) {
+      const fieldNames = emptyFields.map(([key]) => key).join(", ");
+      setError(`Please fill all fields: ${fieldNames}`);
       return;
     }
     setError("");
