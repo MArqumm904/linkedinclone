@@ -78,7 +78,7 @@ const EditProfile = ({ onClose, currentProfilePhoto, onProfileUpdate }) => {
         const formData = new FormData();
         formData.append("delete_photo", "true");
 
-        const response = await axios.put(
+        const response = await axios.post(
           `${API_BASE_URL}/user/profile/${userId}`,
           formData,
           {

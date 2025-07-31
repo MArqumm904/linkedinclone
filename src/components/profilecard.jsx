@@ -14,7 +14,7 @@ const ProfileCard = () => {
   };
 
   useEffect(() => {
-    let isMounted = true; 
+    let isMounted = true;
     const userId = localStorage.getItem("user_id");
 
     if (!userId) {
@@ -29,10 +29,24 @@ const ProfileCard = () => {
       .get(`${import.meta.env.VITE_API_BASE_URL}/user/profile/${userId}`)
       .then((res) => {
         if (!isMounted) return;
-        const userData = {
+        // Merge user and profile data
+        let userData = {
           ...res.data.user,
           ...res.data.profile,
         };
+
+        // Handle profile photo like group_main_home.jsx
+        if (userData.profile_photo) {
+          const baseUrl = import.meta.env.VITE_API_BASE_URL.replace("/api", "");
+          const profilePhotoUrl = userData.profile_photo.startsWith("http")
+            ? userData.profile_photo
+            : `${baseUrl}/storage/${userData.profile_photo}`;
+          userData = {
+            ...userData,
+            profile_photo: profilePhotoUrl,
+          };
+        }
+
         setUserProfile(userData);
       })
       .catch((err) => {
@@ -78,7 +92,7 @@ const ProfileCard = () => {
     >
       <div className="flex items-center mb-4">
         <div
-          className={`w-16 h-16 rounded-full mr-3 flex items-center justify-center bg-white border-2 ${
+          className={`w-20 h-20 rounded-full mr-3 flex items-center justify-center bg-white border-2 ${
             userProfile?.profile_photo
               ? "border-transparent"
               : "border-[#6974b1]"
@@ -90,7 +104,7 @@ const ProfileCard = () => {
               "https://cdn.pixabay.com/photo/2023/02/18/11/00/icon-7797704_640.png"
             }
             alt="Profile"
-            className="w-14 h-14 object-cover rounded-full"
+            className="w-20 h-20 object-cover rounded-full"
           />
         </div>
         <div>

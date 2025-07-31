@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import axios from "axios";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const CreateGroupModal = ({ isOpen, onClose }) => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     groupName: "",
     description: "",
@@ -16,6 +18,8 @@ const CreateGroupModal = ({ isOpen, onClose }) => {
 
   // Track if the user tried to submit with missing fields
   const [showGlobalError, setShowGlobalError] = useState(false);
+  const [apiError, setApiError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -25,6 +29,7 @@ const CreateGroupModal = ({ isOpen, onClose }) => {
     }));
     // Hide global error on change
     setShowGlobalError(false);
+    setApiError(""); // Clear API error when user starts typing
   };
 
   const handleBannerImageUpload = (e) => {
@@ -60,15 +65,18 @@ const CreateGroupModal = ({ isOpen, onClose }) => {
       !formData.groupType.trim()
     ) {
       setShowGlobalError(true);
+      setApiError(""); // Clear any previous API errors
       return;
     }
 
     setShowGlobalError(false);
+    setApiError(""); // Clear any previous errors
+    setIsLoading(true); // Start loading
 
     const userId = localStorage.getItem("user_id");
     const token = localStorage.getItem("token");
     if (!userId || !token) {
-      console.error("User not authenticated");
+      setApiError("User not authenticated");
       return;
     }
 
@@ -103,13 +111,20 @@ const CreateGroupModal = ({ isOpen, onClose }) => {
           },
         }
       );
-      // navigate("/createdgroup");
+
+      // 🔄 Navigate with state
+      navigate("/group_main_home", { state: { groupId: response.data.id } });
       onClose();
     } catch (error) {
-      console.error(
-        "Error creating group:",
-        error.response?.data || error.message
-      );
+      let apiMsg =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "An error occurred while creating the group.";
+      setApiError(apiMsg);
+      console.error("Error creating group:", apiMsg);
+    } finally {
+      setIsLoading(false); // Stop loading regardless of success or error
     }
   };
 
@@ -128,17 +143,16 @@ const CreateGroupModal = ({ isOpen, onClose }) => {
             ✕
           </button>
         </div>
-        {showGlobalError && (
-            <div className=" px-6 pt-2 -mb-3">
-              <div className="bg-red-100 text-red-700 px-4 py-2 rounded text-sm">
-                Please fill all fields.
-              </div>
+        {(showGlobalError || apiError) && (
+          <div className=" px-6 pt-2 -mb-3">
+            <div className="bg-red-100 text-red-700 px-4 py-2 rounded text-sm">
+              {showGlobalError ? "Please fill all fields." : apiError}
             </div>
-          )}
+          </div>
+        )}
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6">
           {/* Global Error */}
-          
 
           {/* Photo Upload Section */}
           <div className="relative mb-5">
@@ -293,9 +307,40 @@ const CreateGroupModal = ({ isOpen, onClose }) => {
           <div className="mt-4 flex">
             <button
               type="submit"
-              className="bg-[#0017e7] text-white py-2 px-8 rounded-md hover:bg-[#0014c9] focus:outline-none focus:ring-2 focus:ring-[#0017e7] focus:ring-offset-2 transition-colors text-sm"
+              disabled={isLoading}
+              className={`py-2 px-8 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors text-sm flex items-center justify-center ${
+                isLoading
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-[#0017e7] text-white hover:bg-[#0014c9] focus:ring-[#0017e7]"
+              }`}
             >
-              Create
+              {isLoading ? (
+                <>
+                  <svg
+                    className="animate-spin -ml-1 mr-3 h-4 w-4 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  Creating...
+                </>
+              ) : (
+                "Create"
+              )}
             </button>
           </div>
         </form>

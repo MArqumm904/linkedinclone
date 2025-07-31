@@ -1,19 +1,25 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Search, Plus, Pin } from "lucide-react";
 import NavbarReplica from "../components/nav";
 import Groupseeall from "../components/groups_see_all";
+import Preloader from "../components/preloader/Preloader";
 
 const Groups = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [showSeeAll, setShowSeeAll] = useState(false);
+  const [createdGroups, setCreatedGroups] = useState([]);
+  const [loading, setLoading] = useState(false);
+
   const handleSeeAllClick = () => {
     setShowSeeAll(true);
   };
   const handleBackToGroups = () => {
     setShowSeeAll(false);
   };
+
+  // Static joined groups data
   const joinedGroups = [
     {
       id: 1,
@@ -65,16 +71,71 @@ const Groups = () => {
     },
   ];
 
-  const createdGroups = [
-    {
-      id: 1,
-      name: "Pixel Code",
-      followers: "20k followers",
-      image:
-        "https://images.pexels.com/photos/11035482/pexels-photo-11035482.jpeg?_gl=1*1j3u38l*_ga*MzkyNzI2MjYwLjE3NDY2MzYwNzY.*_ga_8JE65Q40S6*czE3NTI2MDExOTEkbzE2JGcxJHQxNzUyNjAxMjcyJGo0MSRsMCRoMA..",
-      color: "bg-blue-600",
-    },
-  ];
+  // Fetch created groups data from API
+  useEffect(() => {
+    const userId = localStorage.getItem("user_id");
+    const token = localStorage.getItem("token");
+
+    if (!userId || !token) return;
+
+    setLoading(true);
+
+    fetch(`${import.meta.env.VITE_API_BASE_URL}/groups`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+        user_id: userId,
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.data) {
+          const groups = data.data;
+
+          // Process groups and handle images
+          const processedGroups = groups.map((group) => {
+            let processedGroup = { ...group };
+
+            // Handle profile photo
+            if (group.group_profile_photo) {
+              const baseUrl = import.meta.env.VITE_API_BASE_URL.replace(
+                "/api",
+                ""
+              );
+              const profilePhotoUrl = group.group_profile_photo.startsWith(
+                "http"
+              )
+                ? group.group_profile_photo
+                : `${baseUrl}/storage/${group.group_profile_photo}`;
+
+              processedGroup.image = profilePhotoUrl;
+            } else {
+              // Default image if no profile photo
+              processedGroup.image =
+                "https://cdn.pixabay.com/photo/2023/02/18/11/00/icon-7797704_640.png";
+            }
+
+            // Format followers count
+            processedGroup.followers = `${group.members_count || 0} followers`;
+
+            return processedGroup;
+          });
+
+          setCreatedGroups(processedGroups);
+        } else {
+          console.log("Error fetching groups:", data.message);
+          setCreatedGroups([]);
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching groups:", error);
+        setCreatedGroups([]);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, []);
 
   const relatedGroups = [
     {
@@ -111,6 +172,10 @@ const Groups = () => {
     group.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  if (loading) {
+    return <Preloader />;
+  }
+
   return (
     <>
       {/* Navbar Placeholder */}
@@ -146,30 +211,47 @@ const Groups = () => {
                   <h2 className="text-lg font-semibold text-black px-5 pt-5 font-sf">
                     Created Groups
                   </h2>
-                  <div className="border-t border-[#C9D0FF] mt-3" />{" "}
+                  <div className="border-t border-[#C9D0FF] mt-3" />
                   {/* Full-width line, no padding */}
-                  {createdGroups.map((group) => (
-                    <div
-                      key={group.id}
-                      className="flex items-center gap-3 px-4 py-5"
-                    >
-                      <img
-                        src={group.image}
-                        alt={group.name}
-                        className="w-14 h-14 rounded-full object-cover"
-                      />
-                      <div>
-                        <h3 className="text-lg font-medium text-gray-900 font-sf">
-                          {group.name}
-                        </h3>
-                        <p className="text-xs text-gray-500 font-sf">
-                          {group.followers}
-                        </p>
-                      </div>
+                  {createdGroups.length > 0 ? (
+                    <div>
+                      {createdGroups.map((group, idx) => (
+                        <div
+                          key={group.id}
+                          className={`flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors ${
+                            idx !== createdGroups.length - 1 ? "border-b border-[#E5E7EB]" : ""
+                          }`}
+                          style={{margin: 0}}
+                          onClick={() =>
+                            navigate("/group_main_home", {
+                              state: { groupId: group.id },
+                            })
+                          }
+                        >
+                          <img
+                            src={group.image}
+                            alt={group.group_name}
+                            className="w-14 h-14 rounded-full object-cover"
+                          />
+                          <div>
+                            <h3 className="text-lg font-medium text-gray-900 font-sf">
+                              {group.group_name}
+                            </h3>
+                            <p className="text-xs text-gray-500 font-sf">
+                              {group.followers}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  ) : (
+                    <div className="px-4 py-5">
+                      <p className="text-sm text-gray-500 font-sf">
+                        No groups created yet
+                      </p>
+                    </div>
+                  )}
                 </div>
-
                 {/* Related Groups */}
                 <div className="bg-white rounded-md border border-[#7c87bc] mb-4 shadow-lg">
                   {/* header */}
@@ -283,7 +365,14 @@ const Groups = () => {
                           </button>
                         </div>
 
-                        <button className="w-full font-sf bg-[#0017e7] text-white py-2 mt-2 rounded-md hover:bg-[#0012b7]transition-colors text-sm">
+                        <button
+                          onClick={() =>
+                            navigate("/group-home", {
+                              state: { groupId: group.id },
+                            })
+                          }
+                          className="w-full font-sf bg-[#0017e7] text-white py-2 mt-2 rounded-md hover:bg-[#0012b7] transition-colors text-sm"
+                        >
                           View Group
                         </button>
                       </div>

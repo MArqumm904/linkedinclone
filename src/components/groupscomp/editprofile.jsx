@@ -12,12 +12,17 @@ import axios from "axios";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-const EditCover = ({ onClose, currentCoverPhoto, onCoverUpdate }) => {
+const EditProfile = ({
+  onClose,
+  currentProfilePhoto,
+  onProfileUpdate,
+  groupId,
+}) => {
   const [selectedImage, setSelectedImage] = useState(
-    currentCoverPhoto || null
+    currentProfilePhoto || null
   );
   const [originalFile, setOriginalFile] = useState(null);
-  const [currentStep, setCurrentStep] = useState(currentCoverPhoto ? 2 : 1);
+  const [currentStep, setCurrentStep] = useState(currentProfilePhoto ? 2 : 1);
   const [zoom, setZoom] = useState(1);
   const [rotation, setRotation] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
@@ -26,7 +31,6 @@ const EditCover = ({ onClose, currentCoverPhoto, onCoverUpdate }) => {
   const handleUploadClick = () => {
     fileInputRef.current?.click();
   };
-
   const handleFileSelect = (event) => {
     const file = event.target.files[0];
     if (file) {
@@ -63,7 +67,7 @@ const EditCover = ({ onClose, currentCoverPhoto, onCoverUpdate }) => {
   };
 
   const handleDeleteImage = async () => {
-    if (currentCoverPhoto) {
+    if (currentProfilePhoto) {
       setIsLoading(true);
       const userId = localStorage.getItem("user_id");
       const token = localStorage.getItem("token");
@@ -76,7 +80,7 @@ const EditCover = ({ onClose, currentCoverPhoto, onCoverUpdate }) => {
 
       try {
         const formData = new FormData();
-        formData.append("delete_cover", "true");
+        formData.append("delete_photo", "true");
 
         const response = await axios.post(
           `${API_BASE_URL}/user/profile/${userId}`,
@@ -90,13 +94,13 @@ const EditCover = ({ onClose, currentCoverPhoto, onCoverUpdate }) => {
         );
 
         if (response.data) {
-          if (onCoverUpdate) {
-            onCoverUpdate(null);
+          if (onProfileUpdate) {
+            onProfileUpdate(null);
           }
         }
       } catch (error) {
-        console.error("Error removing cover photo:", error);
-        alert("Failed to remove cover photo. Please try again.");
+        console.error("Error removing profile photo:", error);
+        alert("Failed to remove profile photo. Please try again.");
       } finally {
         setIsLoading(false);
       }
@@ -113,6 +117,7 @@ const EditCover = ({ onClose, currentCoverPhoto, onCoverUpdate }) => {
   };
 
   const handleSave = async () => {
+    console.log("Received groupId on edit profile photo group:", groupId);
     if (!selectedImage) {
       onClose();
       return;
@@ -138,24 +143,26 @@ const EditCover = ({ onClose, currentCoverPhoto, onCoverUpdate }) => {
       } else {
         const response = await fetch(selectedImage);
         const blob = await response.blob();
-        fileToSend = new File([blob], "cover_photo.jpg", { type: blob.type });
+        fileToSend = new File([blob], "profile_photo.jpg", { type: blob.type });
       }
 
       if (fileToSend && fileToSend.size > 0) {
-        formDataToSend.append("cover_photo", fileToSend);
+        // ✅ Fixed: Use correct field name that matches backend expectation
+        formDataToSend.append("group_profile_photo", fileToSend);
 
         const response = await axios.post(
-          `${API_BASE_URL}/user/profile/${userId}`,
+          `${API_BASE_URL}/groups/${groupId}`,
           formDataToSend,
           {
             headers: {
               Authorization: `Bearer ${token}`,
+              "Content-Type": "multipart/form-data",
             },
           }
         );
 
-        if (response.data && onCoverUpdate) {
-          onCoverUpdate(selectedImage);
+        if (response.data && onProfileUpdate) {
+          onProfileUpdate(selectedImage);
         }
 
         onClose();
@@ -163,12 +170,13 @@ const EditCover = ({ onClose, currentCoverPhoto, onCoverUpdate }) => {
         throw new Error("Invalid image data");
       }
     } catch (error) {
-      alert("Failed to update cover photo. Please try again.");
+      alert("Failed to update group photo. Please try again.");
+      console.error(error);
     } finally {
       setIsLoading(false);
     }
   };
-
+  
   const handleDone = async () => {
     await handleSave();
   };
@@ -184,9 +192,9 @@ const EditCover = ({ onClose, currentCoverPhoto, onCoverUpdate }) => {
         <div className="flex justify-between items-center ">
           <h2 className="text-xl font-semibold font-sf">
             {currentStep === 1
-              ? "Cover Image"
+              ? "Profile Picture"
               : currentStep === 2
-              ? "Cover Image"
+              ? "Profile Picture"
               : "Crop Image"}
           </h2>
           <button
@@ -201,34 +209,36 @@ const EditCover = ({ onClose, currentCoverPhoto, onCoverUpdate }) => {
         {/* Step 1: Upload */}
         {currentStep === 1 && (
           <div className="space-y-4">
-            <div className="border-2 border-[#707070] rounded-lg p-20 text-center bg-gray-50 ">
-              <button
-                onClick={handleUploadClick}
-                className="flex ms-14 gap-5 textce text-gray-600 hover:text-gray-800 transition-colors"
-              >
-                <Camera size={25} />
-                Upload Photo
-              </button>
+            <div className="flex items-center justify-center mb-8">
+              <div className="border-2 border-gray-300 rounded-full w-56 h-56 flex items-center justify-center bg-gray-50">
+                <button
+                  onClick={handleUploadClick}
+                  className="flex flex-col items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors"
+                >
+                  <Camera size={25} />
+                  <span>Upload Photo</span>
+                </button>
+              </div>
             </div>
             <div className="flex gap-2 justify-center">
               <button
                 onClick={handleSave}
                 disabled={!selectedImage || isLoading}
-                className="bg-[#0017e7] font-sf text-white px-8 py-1 rounded-lg hover:bg-[#000f96] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-[#0017e7] text-white px-6 py-1 rounded-md hover:bg-[#000f96] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? "Saving..." : "Save"}
               </button>
               <button
                 onClick={handleCropImage}
                 disabled={!selectedImage}
-                className="flex bg-gray-200 gap-2 border-[#000] text-gray-700 px-6 py-1 rounded-lg hover:bg-gray-300 transition-colors border font-sf disabled:opacity-50 disabled:cursor-not-allowed"
+                className="border-black flex bg-gray-200 text-black px-6 py-1 rounded-md hover:bg-gray-300 transition-colors border disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <Crop size={25} />
+                <Crop size={22} className="mr-2" />
                 Crop Image
               </button>
               <button
                 onClick={onClose}
-                className="border border-gray-400 text-gray-700 px-6 py-1 rounded-lg hover:bg-gray-50 transition-colors font-sf"
+                className="border border-gray-400 text-gray-700 px-6 py-1 rounded-md hover:bg-gray-50 transition-colors"
               >
                 Cancel
               </button>
@@ -246,21 +256,23 @@ const EditCover = ({ onClose, currentCoverPhoto, onCoverUpdate }) => {
         {/* Step 2: Preview */}
         {currentStep === 2 && selectedImage && (
           <div className="space-y-4">
-            <div className="relative rounded-lg overflow-hidden max-h-48 flex items-center justify-center">
-              <img
-                src={selectedImage}
-                alt="Preview"
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-                <div className="  rounded-lg p-20 text-center ">
-                  <button
-                    onClick={handleUploadClick}
-                    className="flex gap-5 textce text-white font-bold hover:text-gray-50 transition-colors"
-                  >
-                    <Camera size={25} />
-                    Upload Photo
-                  </button>
+            <div className="flex items-center justify-center">
+              <div className="relative rounded-full overflow-hidden w-56 h-56 flex items-center justify-center">
+                <img
+                  src={selectedImage}
+                  alt="Preview"
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+                  <div className="text-center">
+                    <button
+                      onClick={handleUploadClick}
+                      className="flex flex-col items-center gap-2 text-white font-bold hover:text-gray-50 transition-colors"
+                    >
+                      <Camera size={25} />
+                      <span>Upload Photo</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -305,15 +317,27 @@ const EditCover = ({ onClose, currentCoverPhoto, onCoverUpdate }) => {
         {/* Step 3: Crop */}
         {currentStep === 3 && selectedImage && (
           <div className="space-y-4">
-            <div className="bg-black rounded-lg p-4 flex items-center justify-center overflow-hidden">
-              <img
-                src={selectedImage}
-                alt="Crop preview"
-                className="max-w-full max-h-48 object-contain transition-transform duration-200"
-                style={{
-                  transform: `scale(${zoom}) rotate(${rotation}deg)`,
-                }}
-              />
+            {/* Circular Crop Preview */}
+            <div className=" rounded-lg p-2  flex items-center justify-center overflow-hidden">
+              <div className="relative">
+                {/* Circular mask container */}
+                <div
+                  className="w-64 h-64 rounded-full overflow-hidden shadow-lg border"
+                  style={{
+                    background: "white",
+                  }}
+                >
+                  <img
+                    src={selectedImage}
+                    alt="Crop preview"
+                    className="w-full h-full object-cover transition-transform duration-200"
+                    style={{
+                      transform: `scale(${zoom}) rotate(${rotation}deg)`,
+                      transformOrigin: "center center",
+                    }}
+                  />
+                </div>
+              </div>
             </div>
 
             {/* Crop Controls */}
@@ -411,4 +435,4 @@ const EditCover = ({ onClose, currentCoverPhoto, onCoverUpdate }) => {
   );
 };
 
-export default EditCover;
+export default EditProfile;

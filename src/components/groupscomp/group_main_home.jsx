@@ -14,31 +14,35 @@ import {
   LogOut,
   Lock,
 } from "lucide-react";
-import NavbarReplica from "../components/nav";
-import Person1 from "../assets/images/person-1.png";
-import PostTab from "../components/profilecomponents/post_tab";
-import EditCover from "../components/profilecomponents/edit_cover";
-import EditProfile from "../components/profilecomponents/edit_profile_photo";
-import EditIntro from "../components/profilecomponents/edit_intro";
-import ReqMembership from "../components/profilecomponents/request_membership";
-import AboutTab from "../components/profilecomponents/about_tab";
-import MediaTabPhotos from "../components/profilecomponents/media_tab_photos";
-import AboutFriendsTab from "../components/profilecomponents/about_friends_tab";
-import AboutAgencyTab from "../components/profilecomponents/about_agency_tab";
-import Badges from "../components/profilecomponents/badges";
-import BadgesTab from "../components/profilecomponents/badges_tab";
-import VerifiedMembershipsTab from "../components/profilecomponents/verified_memberships_tab";
-import AccountKeySettings from "../components/profilecomponents/account_key_settings";
-import PrivacySettings from "../components/profilecomponents/privacy_settings";
-import LanguageSettings from "../components/profilecomponents/select_language";
-import ManageNotification from "../components/profilecomponents/manage_notification";
-import BlockedUser from "../components/profilecomponents/blocked_user";
-import DeactivateAccount from "../components/profilecomponents/deactivate_account";
-import HelpCenter from "../components/profilecomponents/help_center";
+import NavbarReplica from "../nav";
+import Person1 from "../../assets/images/person-1.png";
+import PostTab from "../profilecomponents/post_tab";
+import EditCover from "../profilecomponents/edit_cover";
+import EditProfile from "../groupscomp/editprofile";
+import EditIntro from "../profilecomponents/edit_intro";
+import ReqMembership from "../profilecomponents/request_membership";
+import AboutTab from "../profilecomponents/about_tab";
+import MediaTabPhotos from "../profilecomponents/media_tab_photos";
+import AboutFriendsTab from "../profilecomponents/about_friends_tab";
+import AboutAgencyTab from "../profilecomponents/about_agency_tab";
+import Badges from "../profilecomponents/badges";
+import BadgesTab from "../profilecomponents/badges_tab";
+import VerifiedMembershipsTab from "../profilecomponents/verified_memberships_tab";
+import AccountKeySettings from "../profilecomponents/account_key_settings";
+import PrivacySettings from "../profilecomponents/privacy_settings";
+import LanguageSettings from "../profilecomponents/select_language";
+import ManageNotification from "../profilecomponents/manage_notification";
+import BlockedUser from "../profilecomponents/blocked_user";
+import DeactivateAccount from "../profilecomponents/deactivate_account";
+import HelpCenter from "../profilecomponents/help_center";
 import axios from "axios";
-import Preloader from "../components/preloader/Preloader";
+import Preloader from "../preloader/Preloader";
+import { useLocation } from "react-router-dom";
 
-const Profile = () => {
+const GroupHome = () => {
+  const location = useLocation();
+  const groupId = location.state?.groupId;
+  console.log("Received group ID:", groupId);
   const textPosts = [
     {
       id: 1,
@@ -103,7 +107,6 @@ const Profile = () => {
   const [showDeactivateAccount, setShowDeactivateAccount] = useState(false);
   const [showHelpCenter, setShowHelpCenter] = useState(false);
   const [currentBannerPhoto, setCurrentBannerPhoto] = useState(null);
-
   const number_of_text_posts = textPosts.length;
   const number_of_image_posts = imagePosts.length;
   const number_of_video_posts = videoPosts.length;
@@ -112,17 +115,8 @@ const Profile = () => {
   const image_posts_data = imagePosts;
   const video_posts_data = videoPosts;
 
-  const [activeTab, setActiveTab] = useState("Posts");
-  const tabs = [
-    "Posts",
-    "About",
-    "Media",
-    "Friends",
-    "My Work",
-    "My Agencies",
-    "My Badges",
-    "Verified Memberships",
-  ];
+  const [activeTab, setActiveTab] = useState("Discussion");
+  const tabs = ["Discussion", "About", "Members", "Media"];
 
   const suggestedPeople = [
     {
@@ -167,44 +161,132 @@ const Profile = () => {
 
   const iconRef = useRef(null);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
-  const [userProfile, setUserProfile] = useState(null);
+  const [groupData, setGroupData] = useState(null);
+  const [groups, setGroups] = useState([]);
+  const [loadingGroups, setLoadingGroups] = useState(false);
 
   useEffect(() => {
     const userId = localStorage.getItem("user_id");
-    if (!userId) return;
-    fetch(`${import.meta.env.VITE_API_BASE_URL}/user/profile/${userId}`)
-      .then((res) => res.json())
-      .then((data) => {
-        setUserProfile(data.user);
+    const token = localStorage.getItem("token");
 
-        // Handle profile photo
-        if (data.user && data.user.profile && data.user.profile.profile_photo) {
-          const baseUrl = import.meta.env.VITE_API_BASE_URL.replace("/api", "");
-          const profilePhotoUrl = data.user.profile.profile_photo.startsWith(
-            "http"
-          )
-            ? data.user.profile.profile_photo
-            : `${baseUrl}/storage/${data.user.profile.profile_photo}`;
+    if (!userId || !token) return;
 
-          console.log("Profile Photo URL:", profilePhotoUrl);
-          setCurrentProfilePhoto(profilePhotoUrl);
-        }
+    setLoadingGroups(true);
 
-        // Handle banner photo
-        if (data.user && data.user.profile && data.user.profile.cover_photo) {
-          const baseUrl = import.meta.env.VITE_API_BASE_URL.replace("/api", "");
-          const bannerPhotoUrl = data.user.profile.cover_photo.startsWith(
-            "http"
-          )
-            ? data.user.profile.cover_photo
-            : `${baseUrl}/storage/${data.user.profile.cover_photo}`;
-
-          console.log("Banner Photo URL:", bannerPhotoUrl);
-          setCurrentBannerPhoto(bannerPhotoUrl);
-        }
+    // If we have a specific group ID from state, fetch that group
+    if (groupId) {
+      fetch(`${import.meta.env.VITE_API_BASE_URL}/groups/${groupId}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+          user_id: userId,
+        },
       })
-      .catch(() => setUserProfile(null));
-  }, []);
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success && data.data) {
+            const group = data.data;
+            setGroupData(group);
+            
+            // Handle profile photo
+            if (group.group_profile_photo) {
+              const baseUrl = import.meta.env.VITE_API_BASE_URL.replace(
+                "/api",
+                ""
+              );
+              const profilePhotoUrl = group.group_profile_photo.startsWith(
+                "http"
+              )
+                ? group.group_profile_photo
+                : `${baseUrl}/storage/${group.group_profile_photo}`;
+
+              setCurrentProfilePhoto(profilePhotoUrl);
+            }
+
+            // Handle banner image
+            if (group.group_banner_image) {
+              const baseUrl = import.meta.env.VITE_API_BASE_URL.replace(
+                "/api",
+                ""
+              );
+              const bannerPhotoUrl = group.group_banner_image.startsWith(
+                "http"
+              )
+                ? group.group_banner_image
+                : `${baseUrl}/storage/${group.group_banner_image}`;
+
+              setCurrentBannerPhoto(bannerPhotoUrl);
+            }
+          } else {
+            console.log("Error fetching group:", data.message);
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching group:", error);
+        })
+        .finally(() => {
+          setLoadingGroups(false);
+        });
+    } else {
+      // Fallback to fetching all groups if no specific group ID
+      fetch(`${import.meta.env.VITE_API_BASE_URL}/groups`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+          user_id: userId,
+        },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success && data.data && data.data.length > 0) {
+            const firstGroup = data.data[0];
+            setGroupData(firstGroup);
+            
+            // Handle profile photo
+            if (firstGroup.group_profile_photo) {
+              const baseUrl = import.meta.env.VITE_API_BASE_URL.replace(
+                "/api",
+                ""
+              );
+              const profilePhotoUrl = firstGroup.group_profile_photo.startsWith(
+                "http"
+              )
+                ? firstGroup.group_profile_photo
+                : `${baseUrl}/storage/${firstGroup.group_profile_photo}`;
+
+              setCurrentProfilePhoto(profilePhotoUrl);
+            }
+
+            // Handle banner image
+            if (firstGroup.group_banner_image) {
+              const baseUrl = import.meta.env.VITE_API_BASE_URL.replace(
+                "/api",
+                ""
+              );
+              const bannerPhotoUrl = firstGroup.group_banner_image.startsWith(
+                "http"
+              )
+                ? firstGroup.group_banner_image
+                : `${baseUrl}/storage/${firstGroup.group_banner_image}`;
+
+              setCurrentBannerPhoto(bannerPhotoUrl);
+            }
+            setGroups(data.data);
+          } else {
+            setGroups([]);
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching groups:", error);
+          setGroups([]);
+        })
+        .finally(() => {
+          setLoadingGroups(false);
+        });
+    }
+  }, [groupId]);
 
   useEffect(() => {
     if (
@@ -268,43 +350,29 @@ const Profile = () => {
     setShowDropdown((prev) => !prev);
   };
 
-  // Loader logic: show Preloader until userProfile is loaded (or failed)
-  if (userProfile === null) {
+  if (loadingGroups) {
+    return <Preloader />;
+  }
+
+  if (!groupData) {
     return <Preloader />;
   }
 
   return (
     <>
       {showeditcoverPopup && (
-        <EditCover
-          onClose={() => setShoweditcoverPopup(false)}
-          currentCoverPhoto={currentBannerPhoto}
-          onCoverUpdate={(newPhoto) => {
-            setCurrentBannerPhoto(newPhoto);
-            // Update the userProfile state as well
-            setUserProfile((prev) => ({
-              ...prev,
-              profile: {
-                ...prev.profile,
-                cover_photo: newPhoto,
-              },
-            }));
-          }}
-        />
+        <EditCover onClose={() => setShoweditcoverPopup(false)} />
       )}
       {showeditprofilePopup && (
         <EditProfile
           onClose={() => setShoweditprofilePopup(false)}
           currentProfilePhoto={currentProfilePhoto}
+          groupId={groupId}
           onProfileUpdate={(newPhoto) => {
             setCurrentProfilePhoto(newPhoto);
-            // Update the userProfile state as well
-            setUserProfile((prev) => ({
+            setGroupData((prev) => ({
               ...prev,
-              profile: {
-                ...prev.profile,
-                profile_photo: newPhoto,
-              },
+              group_profile_photo: newPhoto,
             }));
           }}
         />
@@ -347,8 +415,8 @@ const Profile = () => {
                 {/* Cover Photo */}
                 <div className="relative h-48 bg-gradient-to-r from-gray-800 to-gray-900 overflow-hidden">
                   <img
-                    src={currentBannerPhoto || "https://images.pexels.com/photos/1181675/pexels-photo-1181675.jpeg?_gl=1*1ssvgvw*_ga*MzkyNzI2MjYwLjE3NDY2MzYwNzY.*_ga_8JE65Q40S6*czE3NTI2OTA2MDckbzE5JGcxJHQxNzUyNjkwNjYyJGo1JGwwJGgw"}
-                    alt="Cover"
+                    src={currentBannerPhoto || (groupData && groupData.group_banner_image) || "https://cdn.pixabay.com/photo/2023/02/18/11/00/icon-7797704_640.png"}
+                    alt="Group Cover"
                     className="w-full h-full object-cover"
                   />
                   <button
@@ -367,9 +435,7 @@ const Profile = () => {
                       <img
                         src={
                           currentProfilePhoto ||
-                          (userProfile &&
-                            userProfile.profile &&
-                            userProfile.profile.profile_photo) ||
+                          (groupData && groupData.group_profile_photo) ||
                           "https://cdn.pixabay.com/photo/2023/02/18/11/00/icon-7797704_640.png"
                         }
                         alt="Profile"
@@ -385,7 +451,7 @@ const Profile = () => {
                     </button>
                   </div>
 
-                  <div className="relative mb-7 bg-white rounded-md mt-5">
+                  <div className="relative mb-12 bg-white rounded-md mt-5">
                     {/* Edit Button */}
                     <button
                       onClick={() => setShoweditintroPopup(true)}
@@ -397,68 +463,25 @@ const Profile = () => {
                     {/* Name and Title */}
                     <div className="flex items-center gap-4 mb-2">
                       <span className="text-3xl font-bold text-black font-sf">
-                        {userProfile ? userProfile.name : "Loading..."}
+                        {groupData.group_name || "Loading..."}
                       </span>
-                      <button
-                        className="flex items-center bg-[#bbf1fc] rounded-full px-4 py-1 focus:outline-none"
-                        onClick={() => setShowBadgesModal(true)}
-                        style={{ cursor: "pointer" }}
-                      >
-                        <Gem className="w-5 h-5 text-[#1797a6] mr-2" />
-                        <span className="text-[#1797a6] font-medium text-base">
-                          Verified Memberships
-                        </span>
-                      </button>
                     </div>
 
                     <div className="flex items-center text-[#636363] mb-2">
-                      <Settings className="w-5 h-5 mr-2" />
-                      <span className="text-lg">UI/UX Designer at Kerone</span>
-
-                      <div className="flex items-center text-gray-600 ms-5">
-                        <MapPin className="w-5 h-5 mr-2" />
-                        <span className="text-lg">
-                          {userProfile && userProfile.profile.location}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Stats */}
-                  <div className="flex space-x-7 mb-8">
-                    <div className="flex items-center space-x-1 font-sf">
-                      <span className="text-lg font-semibold text-gray-900">
-                        {totalPosts}
-                      </span>
-                      <span className="text-md text-gray-500 font-sf font-medium">
-                        post
-                      </span>
-                    </div>
-                    <div className="flex items-center space-x-1 font-sf">
-                      <span className="text-lg font-semibold text-gray-900">
-                        250
-                      </span>
-                      <span className="text-md font-medium text-gray-500 font-sf">
-                        followers
-                      </span>
-                    </div>
-                    <div className="flex items-center space-x-1 font-sf">
-                      <span className="text-lg font-semibold text-gray-900">
-                        160
-                      </span>
-                      <span className="text-md text-gray-500 font-sf font-medium">
-                        following
+                      <MapPin className="w-5 h-5 mr-2" />
+                      <span className="text-lg">
+                        {groupData.group_industry || "Industry not specified"}
                       </span>
                     </div>
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex space-x-3">
+                  <div className="flex space-x-3 ">
                     <button
                       onClick={() => setShowreqmemPopup(true)}
                       className=" bg-[#0017e7] text-white py-2.5 px-6 rounded-md hover:bg-[#0012b7] transition-colors  font-sf"
                     >
-                      Request Membership
+                      Invite Friends
                     </button>
                     <button className="px-6 py-2.5 border border-black text-gray-700 rounded-md hover:bg-gray-50 transition-colors font-sf font-medium">
                       Add a post
@@ -620,7 +643,7 @@ const Profile = () => {
             </div>
           )}
           {/* Tab Content */}
-          {(activeTab === "Posts" || activeTab === "My Work") && (
+          {activeTab === "Discussion" && (
             <PostTab
               number_of_text_posts={number_of_text_posts}
               number_of_image_posts={number_of_image_posts}
@@ -631,15 +654,12 @@ const Profile = () => {
             />
           )}
           {activeTab === "About" && <AboutTab />}
+          {activeTab === "Members" && <AboutFriendsTab />}
           {activeTab === "Media" && <MediaTabPhotos />}
-          {activeTab === "Friends" && <AboutFriendsTab />}
-          {activeTab === "My Agencies" && <AboutAgencyTab />}
-          {activeTab === "My Badges" && <BadgesTab />}
-          {activeTab === "Verified Memberships" && <VerifiedMembershipsTab />}
         </div>
       </div>
     </>
   );
 };
 
-export default Profile;
+export default GroupHome;
