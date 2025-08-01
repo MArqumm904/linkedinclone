@@ -1,22 +1,37 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { X, UserRoundCog, MapPin } from "lucide-react";
+import axios from "axios";
 
-export default function EditIntroModal({ onClose }) {
-  const [isOpen, setIsOpen] = useState(true);
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+export default function EditIntro({ onClose, initialData, userId }) {
   const [formData, setFormData] = useState({
-    name: "The Ransom",
-    workingAs: "UI/UX Designer at Kerone",
-    location: "Karachi, Pakistan",
+    name: "",
+    headline: "",
+    location: "",
   });
+
+  const [isEdited, setIsEdited] = useState(false);
+
+  // Prefill from props
+  useEffect(() => {
+    if (initialData) {
+      setFormData(initialData);
+    }
+  }, [initialData]);
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+    setIsEdited(true);
   };
 
-  const handleSave = () => {
-    console.log("Saved data:", formData);
-    // Add your save logic here
-    setIsOpen(false);
+  const handleSaveOrUpdate = async () => {
+    try {
+      const response = await axios.post(`${API_BASE_URL}/user/profile/${userId}`, formData);
+      console.log("Updated successfully:", response.data);
+      onClose();
+    } catch (error) {
+      console.error("Error updating intro:", error);
+    }
   };
 
   return (
@@ -37,7 +52,7 @@ export default function EditIntroModal({ onClose }) {
 
         {/* Form Content */}
         <div className="p-6 space-y-6">
-          {/* Name Field */}
+          {/* Name */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2 font-sf">
               Name
@@ -46,12 +61,12 @@ export default function EditIntroModal({ onClose }) {
               type="text"
               value={formData.name}
               onChange={(e) => handleInputChange("name", e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md font-sf focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md font-sf focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Enter your name"
             />
           </div>
 
-          {/* Working As Field */}
+          {/* Working As */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2 font-sf">
               Working As
@@ -59,9 +74,9 @@ export default function EditIntroModal({ onClose }) {
             <div className="relative">
               <input
                 type="text"
-                value={formData.workingAs}
-                onChange={(e) => handleInputChange("workingAs", e.target.value)}
-                className="w-full px-3 font-sf py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                value={formData.headline}
+                onChange={(e) => handleInputChange("headline", e.target.value)}
+                className="w-full px-3 font-sf py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Enter your job title"
               />
               <UserRoundCog
@@ -71,7 +86,7 @@ export default function EditIntroModal({ onClose }) {
             </div>
           </div>
 
-          {/* Location Field */}
+          {/* Location */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2 font-sf">
               Location
@@ -93,12 +108,12 @@ export default function EditIntroModal({ onClose }) {
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4  border-gray-200">
+        <div className="px-6 py-4 border-gray-200">
           <button
-            onClick={handleSave}
-            className="w-28 bg-[#0017e7] text-white py-2 px-4 rounded-md hover:bg-[#0013c4] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors font-medium"
+            onClick={handleSaveOrUpdate}
+            className="w-32 bg-[#0017e7] text-white py-2 px-4 rounded-md hover:bg-[#0013c4] transition-colors font-medium"
           >
-            Save
+            {isEdited ? "Update Intro" : "Save"}
           </button>
         </div>
       </div>

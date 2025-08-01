@@ -63,45 +63,43 @@ const EditProfile = ({ onClose, currentProfilePhoto, onProfileUpdate }) => {
   };
 
   const handleDeleteImage = async () => {
-    if (currentProfilePhoto) {
-      setIsLoading(true);
-      const userId = localStorage.getItem("user_id");
-      const token = localStorage.getItem("token");
+    if (!currentProfilePhoto) return;
 
-      if (!userId || !token) {
-        console.error("User not authenticated");
-        setIsLoading(false);
-        return;
-      }
+    setIsLoading(true);
+    const userId = localStorage.getItem("user_id");
+    const token = localStorage.getItem("token");
 
-      try {
-        const formData = new FormData();
-        formData.append("delete_photo", "true");
-
-        const response = await axios.post(
-          `${API_BASE_URL}/user/profile/${userId}`,
-          formData,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "multipart/form-data",
-            },
-          }
-        );
-
-        if (response.data) {
-          if (onProfileUpdate) {
-            onProfileUpdate(null);
-          }
-        }
-      } catch (error) {
-        console.error("Error removing profile photo:", error);
-        alert("Failed to remove profile photo. Please try again.");
-      } finally {
-        setIsLoading(false);
-      }
+    if (!userId || !token) {
+      console.error("User not authenticated");
+      setIsLoading(false);
+      return;
     }
 
+    try {
+      const response = await axios.delete(
+        `${API_BASE_URL}/user/profile/${userId}`,
+        {
+          data: { profile_photo: "delete" }, 
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.data) {
+        if (onProfileUpdate) {
+          onProfileUpdate(null);
+        }
+      }
+    } catch (error) {
+      console.error("Error removing profile photo:", error);
+      alert("Failed to remove profile photo. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+
+    // Reset image states
     setSelectedImage(null);
     setOriginalFile(null);
     setCurrentStep(1);
@@ -269,35 +267,36 @@ const EditProfile = ({ onClose, currentProfilePhoto, onProfileUpdate }) => {
               </div>
             </div>
 
-            <div className="flex justify-center mt-4">
-              <div className="flex gap-2 mt-3">
+            <div className="flex justify-center ">
+              <div className="flex gap-2 bg-white rounded-lg">
                 <button
                   onClick={handleSave}
                   disabled={isLoading}
-                  className="flex items-center justify-center bg-[#0017e7] text-white px-5 py-1 rounded-lg hover:bg-[#000f96] transition-colors disabled:opacity-50"
+                  className="bg-[#0017e7] text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-[#0012ba] transition-colors disabled:opacity-50"
                 >
                   {isLoading ? "Saving..." : "Save"}
                 </button>
 
                 <button
                   onClick={handleCropImage}
-                  className="flex items-center justify-center border border-gray-400 text-black px-4 py-1 rounded-lg hover:bg-gray-100 transition-colors"
+                  className="flex items-center border border-gray-300 text-gray-700 px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-50 transition-colors"
                 >
-                  <Crop className="mr-2" size={20} /> Crop Image
+                  <Crop className="mr-1.5" size={16} />
+                  Crop Image
                 </button>
 
                 <button
                   onClick={handleDeleteImage}
                   disabled={isLoading}
-                  className="flex items-center justify-center border border-gray-400 text-black px-4 py-1 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50"
+                  className="flex items-center border border-red-600 text-red-600 px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-50 transition-colors disabled:opacity-50"
                 >
-                  <Trash2 size={16} className="mr-2" />
-                  {isLoading ? "Removing..." : "Clear Image"}
+                  <Trash2 size={14} className="mr-1.5" />
+                  {isLoading ? "Removing..." : "Delete Image"}
                 </button>
 
                 <button
                   onClick={onClose}
-                  className="flex items-center justify-center border border-gray-400 text-gray-700 px-4 py-1 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="border border-gray-300 text-gray-600 px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-50 transition-colors"
                 >
                   Cancel
                 </button>
@@ -401,21 +400,21 @@ const EditProfile = ({ onClose, currentProfilePhoto, onProfileUpdate }) => {
               <button
                 onClick={handleDone}
                 disabled={isLoading}
-                className="flex-1 bg-[#0017e7] text-white py-3 px-6 rounded-lg hover:bg-[#0015d3] transition-colors disabled:opacity-50"
+                className="flex-1 bg-[#0017e7] text-white py-2 px-3 rounded-lg hover:bg-[#0015d3] transition-colors disabled:opacity-50"
               >
                 {isLoading ? "Saving..." : "Done"}
               </button>
               <button
                 onClick={handleDeleteImage}
                 disabled={isLoading}
-                className="flex bg-red-600 text-white py-3 px-4 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+                className="flex bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
               >
                 <Trash2 size={20} className="mr-2" />
                 {isLoading ? "Removing..." : "Delete"}
               </button>
               <button
                 onClick={onClose}
-                className="flex border border-gray-400 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-50 transition-colors"
+                className="flex border border-gray-400 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 Cancel
               </button>

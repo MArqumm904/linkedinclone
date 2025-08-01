@@ -103,6 +103,7 @@ const Profile = () => {
   const [showDeactivateAccount, setShowDeactivateAccount] = useState(false);
   const [showHelpCenter, setShowHelpCenter] = useState(false);
   const [currentBannerPhoto, setCurrentBannerPhoto] = useState(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const number_of_text_posts = textPosts.length;
   const number_of_image_posts = imagePosts.length;
@@ -204,7 +205,7 @@ const Profile = () => {
         }
       })
       .catch(() => setUserProfile(null));
-  }, []);
+  }, [refreshTrigger]);
 
   useEffect(() => {
     if (
@@ -268,7 +269,11 @@ const Profile = () => {
     setShowDropdown((prev) => !prev);
   };
 
-  // Loader logic: show Preloader until userProfile is loaded (or failed)
+  const handleEditIntroClose = () => {
+    setShoweditintroPopup({ show: false });
+    setRefreshTrigger((prev) => prev + 1); 
+  };
+
   if (userProfile === null) {
     return <Preloader />;
   }
@@ -298,7 +303,6 @@ const Profile = () => {
           currentProfilePhoto={currentProfilePhoto}
           onProfileUpdate={(newPhoto) => {
             setCurrentProfilePhoto(newPhoto);
-            // Update the userProfile state as well
             setUserProfile((prev) => ({
               ...prev,
               profile: {
@@ -309,9 +313,18 @@ const Profile = () => {
           }}
         />
       )}
-      {showeditintroPopup && (
-        <EditIntro onClose={() => setShoweditintroPopup(false)} />
+      {showeditintroPopup.show && (
+        <EditIntro
+          onClose={handleEditIntroClose}
+          initialData={{
+            name: showeditintroPopup.name,
+            headline: showeditintroPopup.headline,
+            location: showeditintroPopup.location,
+          }}
+          userId={userProfile?.id}
+        />
       )}
+
       {showreqmemPopup && (
         <ReqMembership onClose={() => setShowreqmemPopup(false)} />
       )}
@@ -347,7 +360,10 @@ const Profile = () => {
                 {/* Cover Photo */}
                 <div className="relative h-48 bg-gradient-to-r from-gray-800 to-gray-900 overflow-hidden">
                   <img
-                    src={currentBannerPhoto || "https://images.pexels.com/photos/1181675/pexels-photo-1181675.jpeg?_gl=1*1ssvgvw*_ga*MzkyNzI2MjYwLjE3NDY2MzYwNzY.*_ga_8JE65Q40S6*czE3NTI2OTA2MDckbzE5JGcxJHQxNzUyNjkwNjYyJGo1JGwwJGgw"}
+                    src={
+                      currentBannerPhoto ||
+                      "https://images.pexels.com/photos/1181675/pexels-photo-1181675.jpeg?_gl=1*1ssvgvw*_ga*MzkyNzI2MjYwLjE3NDY2MzYwNzY.*_ga_8JE65Q40S6*czE3NTI2OTA2MDckbzE5JGcxJHQxNzUyNjkwNjYyJGo1JGwwJGgw"
+                    }
                     alt="Cover"
                     className="w-full h-full object-cover"
                   />
@@ -388,7 +404,14 @@ const Profile = () => {
                   <div className="relative mb-7 bg-white rounded-md mt-5">
                     {/* Edit Button */}
                     <button
-                      onClick={() => setShoweditintroPopup(true)}
+                      onClick={() =>
+                        setShoweditintroPopup({
+                          show: true,
+                          name: userProfile?.name,
+                          headline: userProfile?.profile?.headline,
+                          location: userProfile?.profile?.location,
+                        })
+                      }
                       className="absolute top-10 -right-5 bg-white border border-[#707070] p-2 rounded-full hover:bg-gray-50 transition-colors"
                     >
                       <Edit3 className="w-4 h-4 text-gray-600" />
@@ -413,7 +436,7 @@ const Profile = () => {
 
                     <div className="flex items-center text-[#636363] mb-2">
                       <Settings className="w-5 h-5 mr-2" />
-                      <span className="text-lg">UI/UX Designer at Kerone</span>
+                      <span className="text-lg">{userProfile && userProfile.profile.headline}</span>
 
                       <div className="flex items-center text-gray-600 ms-5">
                         <MapPin className="w-5 h-5 mr-2" />
