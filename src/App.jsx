@@ -14,6 +14,7 @@ import CheckLoginOrNot from "./pages/CheckLoginOrNot";
 import Preloader from "./components/preloader/Preloader";
 import GroupHome from "./components/groupscomp/group_main_home";
 import "./App.css";
+import Messages from "./pages/Messages";
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
         <Route path="/pages" element={<CheckLoginOrNot><Pages /></CheckLoginOrNot>} />
         <Route path="/browse" element={<CheckLoginOrNot><Browse /></CheckLoginOrNot>} />
         <Route path="/profile" element={<CheckLoginOrNot><Profile /></CheckLoginOrNot>} />
+        <Route path="/messages" element={<CheckLoginOrNot><Messages /></CheckLoginOrNot>} />
         <Route path="/group_main_home" element={<CheckLoginOrNot><GroupHome /></CheckLoginOrNot>} />
       </Routes>
     </Router>

@@ -35,6 +35,9 @@ const SidebarMenu = () => {
   const Gotogroups = () => {
     navigate("/groups");
   };
+  const goToMessages = () => {
+    navigate("/messages");
+  };
   const Gotopages = () => {
     navigate("/pages");
   };
@@ -53,7 +56,7 @@ const SidebarMenu = () => {
     }
   }, [showPostCreatePopup, showGroupCreatePopup, showPageCreatePopup]);
   const menuItems = [
-    { icon: Message, label: "Messages", count: 2, bgColor: "bg-[#ff0000]" },
+    { icon: Message, label: "Messages", count: 2, bgColor: "bg-[#ff0000]" , onClick: goToMessages, },
     {
       icon: Persons,
       label: "Friends",

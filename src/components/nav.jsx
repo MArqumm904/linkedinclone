@@ -9,7 +9,7 @@ import Message from "../assets/images/message.png";
 import Groups from "../assets/images/groups.png";
 import Bellicon from "../assets/images/bellicon.png";
 import AddFriends from "./addfriends";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Person1 from "../assets/images/person-1.png";
 import axios from "axios";
 import PrivacySettings from "./profilecomponents/privacy_settings";
@@ -331,12 +331,12 @@ export default function NavbarReplica() {
             </div>
 
             {/* Messages Icon */}
-            <div className="flex items-center justify-center cursor-pointer relative">
+            <Link to="/messages" className="flex items-center justify-center cursor-pointer relative">
               <img src={Message} className="w-7 h-7 object-contain" />
               <div className="absolute -top-1 -right-2 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
                 <span className="text-white text-xs font-bold">2</span>
               </div>
-            </div>
+            </Link>
 
             {/* Persons Icon */}
             <div className="w-10 h-10 flex items-center justify-center cursor-pointer relative">
