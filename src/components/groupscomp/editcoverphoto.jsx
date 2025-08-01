@@ -12,17 +12,10 @@ import axios from "axios";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-const EditProfile = ({
-  onClose,
-  currentProfilePhoto,
-  onProfileUpdate,
-  groupId,
-}) => {
-  const [selectedImage, setSelectedImage] = useState(
-    currentProfilePhoto || null
-  );
+const EditCoverPhoto = ({ onClose, currentCoverPhoto, onCoverUpdate, groupId }) => {
+  const [selectedImage, setSelectedImage] = useState(currentCoverPhoto || null);
   const [originalFile, setOriginalFile] = useState(null);
-  const [currentStep, setCurrentStep] = useState(currentProfilePhoto ? 2 : 1);
+  const [currentStep, setCurrentStep] = useState(currentCoverPhoto ? 2 : 1);
   const [zoom, setZoom] = useState(1);
   const [rotation, setRotation] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
@@ -31,6 +24,7 @@ const EditProfile = ({
   const handleUploadClick = () => {
     fileInputRef.current?.click();
   };
+
   const handleFileSelect = (event) => {
     const file = event.target.files[0];
     if (file) {
@@ -67,47 +61,61 @@ const EditProfile = ({
   };
 
   const handleDeleteImage = async () => {
-    if (currentProfilePhoto) {
-      setIsLoading(true);
-      const UserId = localStorage.getItem("user_id"); 
-      const token = localStorage.getItem("token");
+    if (!currentCoverPhoto) return;
 
-      if (!UserId || !token) {
-        console.error("Group or user not authenticated");
-        setIsLoading(false);
-        return;
-      }
+    setIsLoading(true);
+    const userId = localStorage.getItem("user_id");
+    const token = localStorage.getItem("token");
 
-      try {
-        const response = await axios.delete(
+    if (!userId || !token) {
+      console.error("User not authenticated");
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      let response;
+      
+      if (groupId) {
+        // Delete group cover photo
+        response = await axios.delete(
           `${API_BASE_URL}/groups/${groupId}`,
           {
+            data: { group_banner_image: "delete" }, 
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+              user_id: userId,
+            },
+          }
+        );
+      } else {
+        // Delete user cover photo
+        response = await axios.delete(
+          `${API_BASE_URL}/user/profile/${userId}`,
+          {
+            data: { cover_photo: "delete" }, 
             headers: {
               Authorization: `Bearer ${token}`,
               "Content-Type": "application/json",
             },
-            data: {
-              group_profile_photo: "delete",
-            },
           }
         );
-
-        if (
-          response.data &&
-          response.data.deleted_fields?.includes("group_profile_photo")
-        ) {
-          if (onProfileUpdate) {
-            onProfileUpdate(null); 
-          }
-        }
-      } catch (error) {
-        console.error("Error removing group profile photo:", error);
-        alert("Failed to remove group profile photo. Please try again.");
-      } finally {
-        setIsLoading(false);
       }
+
+      if (response.data) {
+        if (onCoverUpdate) {
+          onCoverUpdate(null);
+        }
+      }
+    } catch (error) {
+      console.error("Error removing cover photo:", error);
+      alert("Failed to remove cover photo. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
 
+    // Reset image states
     setSelectedImage(null);
     setOriginalFile(null);
     setCurrentStep(1);
@@ -119,7 +127,6 @@ const EditProfile = ({
   };
 
   const handleSave = async () => {
-    console.log("Received groupId on edit profile photo group:", groupId);
     if (!selectedImage) {
       onClose();
       return;
@@ -145,26 +152,56 @@ const EditProfile = ({
       } else {
         const response = await fetch(selectedImage);
         const blob = await response.blob();
-        fileToSend = new File([blob], "profile_photo.jpg", { type: blob.type });
+        const fileName = groupId ? "group_banner.jpg" : "cover_photo.jpg";
+        fileToSend = new File([blob], fileName, { type: blob.type });
       }
 
       if (fileToSend && fileToSend.size > 0) {
-        // ✅ Fixed: Use correct field name that matches backend expectation
-        formDataToSend.append("group_profile_photo", fileToSend);
+        if (groupId) {
+          // Update group banner image
+          formDataToSend.append("group_banner_image", fileToSend);
+          
+          const response = await axios.post(
+            `${API_BASE_URL}/groups/${groupId}`,
+            formDataToSend,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                user_id: userId,
+              },
+            }
+          );
 
-        const response = await axios.post(
-          `${API_BASE_URL}/groups/${groupId}`,
-          formDataToSend,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "multipart/form-data",
-            },
+          if (response.data && onCoverUpdate) {
+            // Handle the response to get the updated banner URL
+            const updatedGroup = response.data.data || response.data.group;
+            if (updatedGroup && updatedGroup.group_banner_image) {
+              const baseUrl = API_BASE_URL.replace("/api", "");
+              const bannerUrl = updatedGroup.group_banner_image.startsWith("http")
+                ? updatedGroup.group_banner_image
+                : `${baseUrl}/storage/${updatedGroup.group_banner_image}`;
+              onCoverUpdate(bannerUrl);
+            } else {
+              onCoverUpdate(selectedImage);
+            }
           }
-        );
+        } else {
+          // Update user cover photo
+          formDataToSend.append("cover_photo", fileToSend);
 
-        if (response.data && onProfileUpdate) {
-          onProfileUpdate(selectedImage);
+          const response = await axios.post(
+            `${API_BASE_URL}/user/profile/${userId}`,
+            formDataToSend,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+          if (response.data && onCoverUpdate) {
+            onCoverUpdate(selectedImage);
+          }
         }
 
         onClose();
@@ -172,8 +209,8 @@ const EditProfile = ({
         throw new Error("Invalid image data");
       }
     } catch (error) {
-      alert("Failed to update group photo. Please try again.");
-      console.error(error);
+      console.error("Error updating cover photo:", error);
+      alert("Failed to update cover photo. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -194,9 +231,9 @@ const EditProfile = ({
         <div className="flex justify-between items-center ">
           <h2 className="text-xl font-semibold font-sf">
             {currentStep === 1
-              ? "Profile Picture"
+              ? "Cover Image"
               : currentStep === 2
-              ? "Profile Picture"
+              ? "Cover Image"
               : "Crop Image"}
           </h2>
           <button
@@ -211,36 +248,34 @@ const EditProfile = ({
         {/* Step 1: Upload */}
         {currentStep === 1 && (
           <div className="space-y-4">
-            <div className="flex items-center justify-center mb-8">
-              <div className="border-2 border-gray-300 rounded-full w-56 h-56 flex items-center justify-center bg-gray-50">
-                <button
-                  onClick={handleUploadClick}
-                  className="flex flex-col items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors"
-                >
-                  <Camera size={25} />
-                  <span>Upload Photo</span>
-                </button>
-              </div>
+            <div className="border-2 border-[#707070] rounded-lg p-20 text-center bg-gray-50 ">
+              <button
+                onClick={handleUploadClick}
+                className="flex ms-14 gap-5 textce text-gray-600 hover:text-gray-800 transition-colors"
+              >
+                <Camera size={25} />
+                Upload Photo
+              </button>
             </div>
             <div className="flex gap-2 justify-center">
               <button
                 onClick={handleSave}
                 disabled={!selectedImage || isLoading}
-                className="bg-[#0017e7] text-white px-6 py-1 rounded-md hover:bg-[#000f96] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-[#0017e7] font-sf text-white px-8 py-1 rounded-lg hover:bg-[#000f96] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? "Saving..." : "Save"}
               </button>
               <button
                 onClick={handleCropImage}
                 disabled={!selectedImage}
-                className="border-black flex bg-gray-200 text-black px-6 py-1 rounded-md hover:bg-gray-300 transition-colors border disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex bg-gray-200 gap-2 border-[#000] text-gray-700 px-6 py-1 rounded-lg hover:bg-gray-300 transition-colors border font-sf disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <Crop size={22} className="mr-2" />
+                <Crop size={25} />
                 Crop Image
               </button>
               <button
                 onClick={onClose}
-                className="border border-gray-400 text-gray-700 px-6 py-1 rounded-md hover:bg-gray-50 transition-colors"
+                className="border border-gray-400 text-gray-700 px-6 py-1 rounded-lg hover:bg-gray-50 transition-colors font-sf"
               >
                 Cancel
               </button>
@@ -258,56 +293,55 @@ const EditProfile = ({
         {/* Step 2: Preview */}
         {currentStep === 2 && selectedImage && (
           <div className="space-y-4">
-            <div className="flex items-center justify-center">
-              <div className="relative rounded-full overflow-hidden w-56 h-56 flex items-center justify-center">
-                <img
-                  src={selectedImage}
-                  alt="Preview"
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
-                  <div className="text-center">
-                    <button
-                      onClick={handleUploadClick}
-                      className="flex flex-col items-center gap-2 text-white font-bold hover:text-gray-50 transition-colors"
-                    >
-                      <Camera size={25} />
-                      <span>Upload Photo</span>
-                    </button>
-                  </div>
+            <div className="relative rounded-lg overflow-hidden max-h-48 flex items-center justify-center">
+              <img
+                src={selectedImage}
+                alt="Preview"
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+                <div className="  rounded-lg p-20 text-center ">
+                  <button
+                    onClick={handleUploadClick}
+                    className="flex gap-5 textce text-white font-bold hover:text-gray-50 transition-colors"
+                  >
+                    <Camera size={25} />
+                    Upload Photo
+                  </button>
                 </div>
               </div>
             </div>
 
-            <div className="flex justify-center mt-4">
-              <div className="flex gap-2 mt-3">
+            <div className="flex justify-center ">
+              <div className="flex gap-2 bg-white rounded-lg">
                 <button
                   onClick={handleSave}
                   disabled={isLoading}
-                  className="flex items-center justify-center bg-[#0017e7] text-white px-5 py-1 rounded-lg hover:bg-[#000f96] transition-colors disabled:opacity-50"
+                  className="bg-[#0017e7] text-white px-6 py-2 rounded-md text-sm font-medium hover:bg-[#0012ba] transition-colors disabled:opacity-50"
                 >
                   {isLoading ? "Saving..." : "Save"}
                 </button>
 
                 <button
                   onClick={handleCropImage}
-                  className="flex items-center justify-center border border-gray-400 text-black px-4 py-1 rounded-lg hover:bg-gray-100 transition-colors"
+                  className="flex items-center border border-gray-300 text-gray-700 px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-50 transition-colors"
                 >
-                  <Crop className="mr-2" size={20} /> Crop Image
+                  <Crop className="mr-1.5" size={16} />
+                  Crop Image
                 </button>
 
                 <button
                   onClick={handleDeleteImage}
                   disabled={isLoading}
-                  className="flex items-center justify-center border border-gray-400 text-black px-4 py-1 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-50"
+                  className="flex items-center border border-gray-300 text-gray-700 px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-50 transition-colors disabled:opacity-50"
                 >
-                  <Trash2 size={16} className="mr-2" />
-                  {isLoading ? "Removing..." : "Clear Image"}
+                  <Trash2 size={14} className="mr-1.5" />
+                  {isLoading ? "Removing..." : "Delete Image"}
                 </button>
 
                 <button
                   onClick={onClose}
-                  className="flex items-center justify-center border border-gray-400 text-gray-700 px-4 py-1 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="border border-gray-300 text-gray-600 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-50 transition-colors"
                 >
                   Cancel
                 </button>
@@ -319,27 +353,15 @@ const EditProfile = ({
         {/* Step 3: Crop */}
         {currentStep === 3 && selectedImage && (
           <div className="space-y-4">
-            {/* Circular Crop Preview */}
-            <div className=" rounded-lg p-2  flex items-center justify-center overflow-hidden">
-              <div className="relative">
-                {/* Circular mask container */}
-                <div
-                  className="w-64 h-64 rounded-full overflow-hidden shadow-lg border"
-                  style={{
-                    background: "white",
-                  }}
-                >
-                  <img
-                    src={selectedImage}
-                    alt="Crop preview"
-                    className="w-full h-full object-cover transition-transform duration-200"
-                    style={{
-                      transform: `scale(${zoom}) rotate(${rotation}deg)`,
-                      transformOrigin: "center center",
-                    }}
-                  />
-                </div>
-              </div>
+            <div className="bg-black rounded-lg p-4 flex items-center justify-center overflow-hidden">
+              <img
+                src={selectedImage}
+                alt="Crop preview"
+                className="max-w-full max-h-48 object-contain transition-transform duration-200"
+                style={{
+                  transform: `scale(${zoom}) rotate(${rotation}deg)`,
+                }}
+              />
             </div>
 
             {/* Crop Controls */}
@@ -437,4 +459,4 @@ const EditProfile = ({
   );
 };
 
-export default EditProfile;
+export default EditCoverPhoto;

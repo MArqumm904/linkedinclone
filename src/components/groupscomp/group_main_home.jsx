@@ -17,11 +17,12 @@ import {
 import NavbarReplica from "../nav";
 import Person1 from "../../assets/images/person-1.png";
 import PostTab from "../profilecomponents/post_tab";
-import EditCover from "../profilecomponents/edit_cover";
+import EditCover from "../groupscomp/editcoverphoto";
 import EditProfile from "../groupscomp/editprofile";
-import EditIntro from "../profilecomponents/edit_intro";
+import EditIntro from "../groupscomp/editintro";
 import ReqMembership from "../profilecomponents/request_membership";
-import AboutTab from "../profilecomponents/about_tab";
+import InviteFriendsToGroup from "../groupscomp/invite_freinds";
+import AboutTab from "../groupscomp/about_tabs";
 import MediaTabPhotos from "../profilecomponents/media_tab_photos";
 import AboutFriendsTab from "../profilecomponents/about_friends_tab";
 import AboutAgencyTab from "../profilecomponents/about_agency_tab";
@@ -107,6 +108,7 @@ const GroupHome = () => {
   const [showDeactivateAccount, setShowDeactivateAccount] = useState(false);
   const [showHelpCenter, setShowHelpCenter] = useState(false);
   const [currentBannerPhoto, setCurrentBannerPhoto] = useState(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
   const number_of_text_posts = textPosts.length;
   const number_of_image_posts = imagePosts.length;
   const number_of_video_posts = videoPosts.length;
@@ -188,7 +190,7 @@ const GroupHome = () => {
           if (data.success && data.data) {
             const group = data.data;
             setGroupData(group);
-            
+
             // Handle profile photo
             if (group.group_profile_photo) {
               const baseUrl = import.meta.env.VITE_API_BASE_URL.replace(
@@ -210,9 +212,7 @@ const GroupHome = () => {
                 "/api",
                 ""
               );
-              const bannerPhotoUrl = group.group_banner_image.startsWith(
-                "http"
-              )
+              const bannerPhotoUrl = group.group_banner_image.startsWith("http")
                 ? group.group_banner_image
                 : `${baseUrl}/storage/${group.group_banner_image}`;
 
@@ -243,7 +243,7 @@ const GroupHome = () => {
           if (data.success && data.data && data.data.length > 0) {
             const firstGroup = data.data[0];
             setGroupData(firstGroup);
-            
+
             // Handle profile photo
             if (firstGroup.group_profile_photo) {
               const baseUrl = import.meta.env.VITE_API_BASE_URL.replace(
@@ -286,7 +286,7 @@ const GroupHome = () => {
           setLoadingGroups(false);
         });
     }
-  }, [groupId]);
+  }, [groupId, refreshTrigger]);
 
   useEffect(() => {
     if (
@@ -350,6 +350,11 @@ const GroupHome = () => {
     setShowDropdown((prev) => !prev);
   };
 
+  const handleEditIntroClose = () => {
+    setShoweditintroPopup(false);
+    setRefreshTrigger((prev) => prev + 1);
+  };
+
   if (loadingGroups) {
     return <Preloader />;
   }
@@ -361,7 +366,18 @@ const GroupHome = () => {
   return (
     <>
       {showeditcoverPopup && (
-        <EditCover onClose={() => setShoweditcoverPopup(false)} />
+        <EditCover
+          onClose={() => setShoweditcoverPopup(false)}
+          currentCoverPhoto={currentBannerPhoto}
+          groupId={groupId}
+          onCoverUpdate={(newBanner) => {
+            setCurrentBannerPhoto(newBanner);
+            setGroupData((prev) => ({
+              ...prev,
+              group_banner_image: newBanner,
+            }));
+          }}
+        />
       )}
       {showeditprofilePopup && (
         <EditProfile
@@ -378,10 +394,18 @@ const GroupHome = () => {
         />
       )}
       {showeditintroPopup && (
-        <EditIntro onClose={() => setShoweditintroPopup(false)} />
+        <EditIntro
+          initialData={{
+            name: showeditintroPopup.name,
+            location: showeditintroPopup.location,
+          }}
+          groupId={groupId}
+          onClose={handleEditIntroClose}
+        />
       )}
+
       {showreqmemPopup && (
-        <ReqMembership onClose={() => setShowreqmemPopup(false)} />
+        <InviteFriendsToGroup onClose={() => setShowreqmemPopup(false)} />
       )}
       {showBadgesModal && <Badges onClose={() => setShowBadgesModal(false)} />}
       {showAccountKeySettings && (
@@ -415,7 +439,11 @@ const GroupHome = () => {
                 {/* Cover Photo */}
                 <div className="relative h-48 bg-gradient-to-r from-gray-800 to-gray-900 overflow-hidden">
                   <img
-                    src={currentBannerPhoto || (groupData && groupData.group_banner_image) || "https://cdn.pixabay.com/photo/2023/02/18/11/00/icon-7797704_640.png"}
+                    src={
+                      currentBannerPhoto ||
+                      (groupData && groupData.group_banner_image) ||
+                      "https://cdn.pixabay.com/photo/2023/02/18/11/00/icon-7797704_640.png"
+                    }
                     alt="Group Cover"
                     className="w-full h-full object-cover"
                   />
@@ -454,7 +482,13 @@ const GroupHome = () => {
                   <div className="relative mb-12 bg-white rounded-md mt-5">
                     {/* Edit Button */}
                     <button
-                      onClick={() => setShoweditintroPopup(true)}
+                      onClick={() =>
+                        setShoweditintroPopup({
+                          show: true,
+                          name: groupData.group_name,
+                          location: groupData.location,
+                        })
+                      }
                       className="absolute top-10 -right-5 bg-white border border-[#707070] p-2 rounded-full hover:bg-gray-50 transition-colors"
                     >
                       <Edit3 className="w-4 h-4 text-gray-600" />
@@ -470,7 +504,7 @@ const GroupHome = () => {
                     <div className="flex items-center text-[#636363] mb-2">
                       <MapPin className="w-5 h-5 mr-2" />
                       <span className="text-lg">
-                        {groupData.group_industry || "Industry not specified"}
+                        {groupData.location || "No Location Found."}
                       </span>
                     </div>
                   </div>
@@ -653,7 +687,7 @@ const GroupHome = () => {
               video_posts_data={video_posts_data}
             />
           )}
-          {activeTab === "About" && <AboutTab />}
+          {activeTab === "About" && <AboutTab groupId={groupId} />}
           {activeTab === "Members" && <AboutFriendsTab />}
           {activeTab === "Media" && <MediaTabPhotos />}
         </div>
