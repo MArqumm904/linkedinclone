@@ -26,11 +26,12 @@ export default function Messages() {
 
   return (
     <>
-
-      <Navbar />
       <StartChat isOpen={isStartChatOpen} onClose={() => setIsStartChatOpen(false)} />
 
-      <div className="w-full flex md:h-screen md:p-10 md:gap-6">
+      <div className="w-full md:h-screen">
+      <Navbar />
+      <div className="flex md:h-screen md:p-10 md:gap-6">
+
         {/* Left Sidebar - Messages */}
         <ChatList ref={chatListRef} onStartChat={() => setIsStartChatOpen(true)} onSelectChat={(chat) => setSelectedChat(chat)} isChatSelected={!!selectedChat} />
         {selectedChat ? (
@@ -38,6 +39,7 @@ export default function Messages() {
         ) : (
           <ChatWelcome onStartChat={() => setIsStartChatOpen(true)} />
         )}
+        </div>
       </div>
     </>
   );
